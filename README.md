@@ -10,7 +10,7 @@ A Model Context Protocol (MCP) server implementation for [Coolify](https://cooli
 "coolify": {
     "command": "npx",
     "args": [
-        "-y", "@stumason/coolify-mcp"
+        "-y", "@masonator/coolify-mcp"
     ],
     "env": {
         "COOLIFY_ACCESS_TOKEN": "0|your-secret-token",
@@ -183,10 +183,11 @@ await client.getProjectEnvironment(
 ```
 
 Example:
+
 ```typescript
 const environment = await client.getProjectEnvironment(
-  'ikokwc8sk00wk8sg8gkwoscw',  // Project UUID
-  'production'                  // Environment name or UUID
+  'ikokwc8sk00wk8sg8gkwoscw', // Project UUID
+  'production', // Environment name or UUID
 );
 ```
 

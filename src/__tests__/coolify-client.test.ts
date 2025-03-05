@@ -1,9 +1,5 @@
 import { CoolifyClient } from '../lib/coolify-client.js';
-import type {
-  ServerInfo,
-  ServerResources,
-  Environment,
-} from '../types/coolify.js';
+import type { ServerInfo, ServerResources, Environment } from '../types/coolify.js';
 
 // Mock fetch globally
 const mockFetch = jest.fn();
@@ -262,7 +258,7 @@ describe('CoolifyClient', () => {
       it('should fetch environment by project UUID and name/UUID successfully', async () => {
         mockFetch.mockResolvedValueOnce({
           ok: true,
-          json: () => Promise.resolve(mockEnvironment)
+          json: () => Promise.resolve(mockEnvironment),
         });
 
         const result = await client.getProjectEnvironment('ikokwc8sk00wk8sg8gkwoscw', 'production');
@@ -292,7 +288,7 @@ describe('CoolifyClient', () => {
         });
 
         await expect(
-          client.getProjectEnvironment('invalid-project', 'invalid-env')
+          client.getProjectEnvironment('invalid-project', 'invalid-env'),
         ).rejects.toThrow('Environment not found');
       });
     });
