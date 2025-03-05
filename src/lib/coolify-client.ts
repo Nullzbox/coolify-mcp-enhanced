@@ -1,4 +1,15 @@
-import { CoolifyConfig, ErrorResponse, ServerInfo, ServerResources, ServerDomain, ValidationResponse, Project, CreateProjectRequest, UpdateProjectRequest, Environment } from '../types/coolify.js';
+import {
+  CoolifyConfig,
+  ErrorResponse,
+  ServerInfo,
+  ServerResources,
+  ServerDomain,
+  ValidationResponse,
+  Project,
+  CreateProjectRequest,
+  UpdateProjectRequest,
+  Environment,
+} from '../types/coolify.js';
 
 export class CoolifyClient {
   private baseUrl: string;
@@ -36,7 +47,9 @@ export class CoolifyClient {
       return data as T;
     } catch (error) {
       if (error instanceof TypeError && error.message.includes('fetch')) {
-        throw new Error(`Failed to connect to Coolify server at ${this.baseUrl}. Please check if the server is running and the URL is correct.`);
+        throw new Error(
+          `Failed to connect to Coolify server at ${this.baseUrl}. Please check if the server is running and the URL is correct.`,
+        );
       }
       throw error;
     }
@@ -66,7 +79,9 @@ export class CoolifyClient {
     try {
       await this.listServers();
     } catch (error) {
-      throw new Error(`Failed to connect to Coolify server: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Failed to connect to Coolify server: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
     }
   }
 
@@ -98,7 +113,10 @@ export class CoolifyClient {
     });
   }
 
-  async getProjectEnvironment(projectUuid: string, environmentNameOrUuid: string): Promise<Environment> {
+  async getProjectEnvironment(
+    projectUuid: string,
+    environmentNameOrUuid: string,
+  ): Promise<Environment> {
     return this.request<Environment>(`/projects/${projectUuid}/${environmentNameOrUuid}`);
   }
 

@@ -1,5 +1,5 @@
 import { CoolifyClient } from '../lib/coolify-client.js';
-import type { ServerInfo, ServerResources } from '../types/coolify.js';
+import type { ServerInfo, ServerResources, Environment } from '../types/coolify.js';
 
 // Mock fetch globally
 const mockFetch = jest.fn();
@@ -14,6 +14,8 @@ describe('CoolifyClient', () => {
       accessToken: 'test-token',
     });
     mockFetch.mockClear();
+    // Reset any global mock implementations
+    mockFetch.mockReset();
   });
 
   describe('listServers', () => {
@@ -180,21 +182,23 @@ describe('CoolifyClient', () => {
     const mockResponse = {
       uuid: 'test-uuid',
       name: 'test-server',
-      description: 'Test server',
-      ip: '127.0.0.1',
-      port: 22,
-      is_reachable: true,
-      is_usable: true,
+      status: 'running',
+      version: '1.0.0',
+      resources: {
+        cpu: 50,
+        memory: 60,
+        disk: 70,
+      },
     };
 
-    global.fetch = jest.fn().mockResolvedValue({
+    mockFetch.mockResolvedValueOnce({
       ok: true,
       json: () => Promise.resolve(mockResponse),
     });
 
     const server = await client.getServer('test-uuid');
     expect(server).toEqual(mockResponse);
-    expect(global.fetch).toHaveBeenCalledWith(
+    expect(mockFetch).toHaveBeenCalledWith(
       'http://test.coolify.io/api/v1/servers/test-uuid',
       expect.objectContaining({
         headers: {
@@ -218,14 +222,14 @@ describe('CoolifyClient', () => {
       },
     ];
 
-    global.fetch = jest.fn().mockResolvedValue({
+    mockFetch.mockResolvedValueOnce({
       ok: true,
       json: () => Promise.resolve(mockResponse),
     });
 
     const resources = await client.getServerResources('test-uuid');
     expect(resources).toEqual(mockResponse);
-    expect(global.fetch).toHaveBeenCalledWith(
+    expect(mockFetch).toHaveBeenCalledWith(
       'http://test.coolify.io/api/v1/servers/test-uuid/resources',
       expect.objectContaining({
         headers: {
@@ -234,5 +238,59 @@ describe('CoolifyClient', () => {
         },
       }),
     );
+  });
+
+  describe('Environment Management', () => {
+    const mockEnvironment: Environment = {
+      id: 1,
+      uuid: 'jw0gwo4sowkoowswssk0gkc4',
+      name: 'production',
+      project_uuid: 'ikokwc8sk00wk8sg8gkwoscw',
+      created_at: '2025-02-11T11:37:33.000000Z',
+      updated_at: '2025-02-11T11:37:33.000000Z',
+    };
+
+    beforeEach(() => {
+      mockFetch.mockClear();
+    });
+
+    describe('getProjectEnvironment', () => {
+      it('should fetch environment by project UUID and name/UUID successfully', async () => {
+        mockFetch.mockResolvedValueOnce({
+          ok: true,
+          json: () => Promise.resolve(mockEnvironment),
+        });
+
+        const result = await client.getProjectEnvironment('ikokwc8sk00wk8sg8gkwoscw', 'production');
+
+        expect(result).toEqual(mockEnvironment);
+        expect(mockFetch).toHaveBeenCalledWith(
+          'http://test.coolify.io/api/v1/projects/ikokwc8sk00wk8sg8gkwoscw/production',
+          expect.objectContaining({
+            headers: expect.objectContaining({
+              Authorization: 'Bearer test-token',
+              'Content-Type': 'application/json',
+            }),
+          }),
+        );
+      });
+
+      it('should handle not found error', async () => {
+        const errorResponse = {
+          error: 'Not Found',
+          status: 404,
+          message: 'Environment not found',
+        };
+
+        mockFetch.mockResolvedValueOnce({
+          ok: false,
+          json: () => Promise.resolve(errorResponse),
+        });
+
+        await expect(
+          client.getProjectEnvironment('invalid-project', 'invalid-env'),
+        ).rejects.toThrow('Environment not found');
+      });
+    });
   });
 });

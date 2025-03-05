@@ -1,7 +1,17 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
 import { CoolifyClient } from './coolify-client.js';
-import { CoolifyConfig, ServerInfo, ServerResources, ServerDomain, ValidationResponse, Project, CreateProjectRequest, UpdateProjectRequest, Environment } from '../types/coolify.js';
+import {
+  CoolifyConfig,
+  ServerInfo,
+  ServerResources,
+  ServerDomain,
+  ValidationResponse,
+  Project,
+  CreateProjectRequest,
+  UpdateProjectRequest,
+  Environment,
+} from '../types/coolify.js';
 import { z } from 'zod';
 
 export class CoolifyMcpServer {
@@ -19,26 +29,21 @@ export class CoolifyMcpServer {
   }
 
   private setupTools(): void {
-    this.server.tool(
-      'list_servers',
-      'List all Coolify servers',
-      {},
-      async () => {
-        try {
-          const servers = await this.client.listServers();
-          return {
-            content: [{ type: 'text', text: JSON.stringify(servers) }],
-            isError: false
-          };
-        } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-          return {
-            content: [{ type: 'text', text: errorMessage }],
-            isError: true
-          };
-        }
+    this.server.tool('list_servers', 'List all Coolify servers', {}, async () => {
+      try {
+        const servers = await this.client.listServers();
+        return {
+          content: [{ type: 'text', text: JSON.stringify(servers) }],
+          isError: false,
+        };
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        return {
+          content: [{ type: 'text', text: errorMessage }],
+          isError: true,
+        };
       }
-    );
+    });
 
     this.server.tool(
       'get_server',
@@ -49,16 +54,16 @@ export class CoolifyMcpServer {
           const server = await this.client.getServer(params.uuid);
           return {
             content: [{ type: 'text', text: JSON.stringify(server) }],
-            isError: false
+            isError: false,
           };
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : 'Unknown error';
           return {
             content: [{ type: 'text', text: errorMessage }],
-            isError: true
+            isError: true,
           };
         }
-      }
+      },
     );
 
     this.server.tool(
@@ -70,16 +75,16 @@ export class CoolifyMcpServer {
           const resources = await this.client.getServerResources(params.uuid);
           return {
             content: [{ type: 'text', text: JSON.stringify(resources) }],
-            isError: false
+            isError: false,
           };
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : 'Unknown error';
           return {
             content: [{ type: 'text', text: errorMessage }],
-            isError: true
+            isError: true,
           };
         }
-      }
+      },
     );
 
     this.server.tool(
@@ -91,16 +96,16 @@ export class CoolifyMcpServer {
           const domains = await this.client.getServerDomains(params.uuid);
           return {
             content: [{ type: 'text', text: JSON.stringify(domains) }],
-            isError: false
+            isError: false,
           };
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : 'Unknown error';
           return {
             content: [{ type: 'text', text: errorMessage }],
-            isError: true
+            isError: true,
           };
         }
-      }
+      },
     );
 
     this.server.tool(
@@ -112,38 +117,33 @@ export class CoolifyMcpServer {
           const result = await this.client.validateServer(params.uuid);
           return {
             content: [{ type: 'text', text: JSON.stringify(result) }],
-            isError: false
+            isError: false,
           };
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : 'Unknown error';
           return {
             content: [{ type: 'text', text: errorMessage }],
-            isError: true
+            isError: true,
           };
         }
-      }
+      },
     );
 
-    this.server.tool(
-      'list_projects',
-      'List all Coolify projects',
-      {},
-      async () => {
-        try {
-          const projects = await this.client.listProjects();
-          return {
-            content: [{ type: 'text', text: JSON.stringify(projects) }],
-            isError: false
-          };
-        } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-          return {
-            content: [{ type: 'text', text: errorMessage }],
-            isError: true
-          };
-        }
+    this.server.tool('list_projects', 'List all Coolify projects', {}, async () => {
+      try {
+        const projects = await this.client.listProjects();
+        return {
+          content: [{ type: 'text', text: JSON.stringify(projects) }],
+          isError: false,
+        };
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        return {
+          content: [{ type: 'text', text: errorMessage }],
+          isError: true,
+        };
       }
-    );
+    });
 
     this.server.tool(
       'get_project',
@@ -154,16 +154,16 @@ export class CoolifyMcpServer {
           const project = await this.client.getProject(params.uuid);
           return {
             content: [{ type: 'text', text: JSON.stringify(project) }],
-            isError: false
+            isError: false,
           };
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : 'Unknown error';
           return {
             content: [{ type: 'text', text: errorMessage }],
-            isError: true
+            isError: true,
           };
         }
-      }
+      },
     );
 
     this.server.tool(
@@ -171,23 +171,23 @@ export class CoolifyMcpServer {
       'Create a new Coolify project',
       {
         name: z.string().describe('Name of the project'),
-        description: z.string().optional().describe('Optional description of the project')
+        description: z.string().optional().describe('Optional description of the project'),
       },
       async (params) => {
         try {
           const result = await this.client.createProject(params);
           return {
             content: [{ type: 'text', text: JSON.stringify(result) }],
-            isError: false
+            isError: false,
           };
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : 'Unknown error';
           return {
             content: [{ type: 'text', text: errorMessage }],
-            isError: true
+            isError: true,
           };
         }
-      }
+      },
     );
 
     this.server.tool(
@@ -196,7 +196,7 @@ export class CoolifyMcpServer {
       {
         uuid: z.string().describe('UUID of the project to update'),
         name: z.string().optional().describe('New name for the project'),
-        description: z.string().optional().describe('New description for the project')
+        description: z.string().optional().describe('New description for the project'),
       },
       async (params) => {
         try {
@@ -204,16 +204,16 @@ export class CoolifyMcpServer {
           const result = await this.client.updateProject(uuid, updateData);
           return {
             content: [{ type: 'text', text: JSON.stringify(result) }],
-            isError: false
+            isError: false,
           };
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : 'Unknown error';
           return {
             content: [{ type: 'text', text: errorMessage }],
-            isError: true
+            isError: true,
           };
         }
-      }
+      },
     );
 
     this.server.tool(
@@ -225,16 +225,16 @@ export class CoolifyMcpServer {
           const result = await this.client.deleteProject(params.uuid);
           return {
             content: [{ type: 'text', text: JSON.stringify(result) }],
-            isError: false
+            isError: false,
           };
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : 'Unknown error';
           return {
             content: [{ type: 'text', text: errorMessage }],
-            isError: true
+            isError: true,
           };
         }
-      }
+      },
     );
 
     this.server.tool(
@@ -242,37 +242,34 @@ export class CoolifyMcpServer {
       'Get details about a specific environment in a project',
       {
         project_uuid: z.string().describe('UUID of the project'),
-        environment_name_or_uuid: z.string().describe('Name or UUID of the environment')
+        environment_name_or_uuid: z.string().describe('Name or UUID of the environment'),
       },
       async (params) => {
         try {
           const environment = await this.client.getProjectEnvironment(
             params.project_uuid,
-            params.environment_name_or_uuid
+            params.environment_name_or_uuid,
           );
           return {
             content: [{ type: 'text', text: JSON.stringify(environment) }],
-            isError: false
+            isError: false,
           };
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : 'Unknown error';
           return {
             content: [{ type: 'text', text: errorMessage }],
-            isError: true
+            isError: true,
           };
         }
-      }
+      },
     );
+
+    // End of tool definitions
   }
 
   async start(transport: Transport): Promise<void> {
-    try {
-      await this.client.validateConnection();
-      await this.server.connect(transport);
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      throw new Error(`Failed to start MCP server: ${errorMessage}`);
-    }
+    await this.client.validateConnection();
+    await this.server.connect(transport);
   }
 
   async list_servers(): Promise<ServerInfo[]> {
@@ -315,7 +312,10 @@ export class CoolifyMcpServer {
     return this.client.deleteProject(uuid);
   }
 
-  async get_project_environment(projectUuid: string, environmentNameOrUuid: string): Promise<Environment> {
+  async get_project_environment(
+    projectUuid: string,
+    environmentNameOrUuid: string,
+  ): Promise<Environment> {
     return this.client.getProjectEnvironment(projectUuid, environmentNameOrUuid);
   }
 }

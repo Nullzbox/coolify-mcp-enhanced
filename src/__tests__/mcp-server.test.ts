@@ -143,20 +143,25 @@ describe('CoolifyMcpServer', () => {
     });
   });
 
-  describe('get_project_environment', () => {
-    it('should call client getProjectEnvironment', async () => {
-      const mockEnvironment: Environment = {
-        id: 1,
-        uuid: 'test-env-uuid',
-        name: 'test-environment',
-      };
+  describe('Environment Management', () => {
+    const mockEnvironment: Environment = {
+      id: 1,
+      uuid: 'test-env-uuid',
+      name: 'test-environment',
+      project_uuid: 'test-project-uuid',
+      created_at: '2024-03-19T12:00:00Z',
+      updated_at: '2024-03-19T12:00:00Z',
+    };
 
-      const spy = jest
-        .spyOn(server['client'], 'getProjectEnvironment')
-        .mockResolvedValue(mockEnvironment);
+    describe('get_project_environment', () => {
+      it('should call client getProjectEnvironment', async () => {
+        const spy = jest
+          .spyOn(server['client'], 'getProjectEnvironment')
+          .mockResolvedValue(mockEnvironment);
 
-      await server.get_project_environment('test-project-uuid', 'test-env-uuid');
-      expect(spy).toHaveBeenCalledWith('test-project-uuid', 'test-env-uuid');
+        await server.get_project_environment('test-project-uuid', 'test-env-uuid');
+        expect(spy).toHaveBeenCalledWith('test-project-uuid', 'test-env-uuid');
+      });
     });
   });
 });
