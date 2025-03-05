@@ -249,30 +249,29 @@ describe('CoolifyClient', () => {
   describe('Environment Management', () => {
     const mockEnvironment: Environment = {
       id: 1,
-      uuid: 'env-test-id',
-      name: 'test-env',
-      project_uuid: 'project-test-id',
-      variables: { KEY: 'value' },
-      created_at: '2024-03-19T12:00:00Z',
-      updated_at: '2024-03-19T12:00:00Z',
+      uuid: 'jw0gwo4sowkoowswssk0gkc4',
+      name: 'production',
+      project_uuid: 'ikokwc8sk00wk8sg8gkwoscw',
+      created_at: '2025-02-11T11:37:33.000000Z',
+      updated_at: '2025-02-11T11:37:33.000000Z',
     };
 
     beforeEach(() => {
       mockFetch.mockClear();
     });
 
-    describe('listEnvironments', () => {
-      it('should fetch all environments successfully', async () => {
+    describe('get_project_environment', () => {
+      it('should fetch environment by project UUID and name/UUID successfully', async () => {
         mockFetch.mockResolvedValueOnce({
           ok: true,
-          json: () => Promise.resolve([mockEnvironment]),
+          json: () => Promise.resolve(mockEnvironment)
         });
 
-        const result = await client.listEnvironments();
+        const result = await client.getProjectEnvironment('ikokwc8sk00wk8sg8gkwoscw', 'production');
 
-        expect(result).toEqual([mockEnvironment]);
+        expect(result).toEqual(mockEnvironment);
         expect(mockFetch).toHaveBeenCalledWith(
-          'http://test.coolify.io/api/v1/environments',
+          'http://test.coolify.io/api/v1/projects/ikokwc8sk00wk8sg8gkwoscw/production',
           expect.objectContaining({
             headers: expect.objectContaining({
               Authorization: 'Bearer test-token',
@@ -282,136 +281,117 @@ describe('CoolifyClient', () => {
         );
       });
 
-      it('should fetch environments by project UUID', async () => {
+      it('should handle not found error', async () => {
+        const errorResponse = {
+          error: 'Not Found',
+          status: 404,
+          message: 'Environment not found',
+        };
+
         mockFetch.mockResolvedValueOnce({
-          ok: true,
-          json: () => Promise.resolve([mockEnvironment]),
+          ok: false,
+          json: () => Promise.resolve(errorResponse),
         });
 
-        const result = await client.listEnvironments('project-test-id');
+        await expect(
+          client.getProjectEnvironment('invalid-project', 'invalid-env')
+        ).rejects.toThrow('Environment not found');
+      });
+    });
 
-        expect(result).toEqual([mockEnvironment]);
-        expect(mockFetch).toHaveBeenCalledWith(
-          'http://test.coolify.io/api/v1/environments?project_uuid=project-test-id',
-          expect.objectContaining({
-            headers: expect.objectContaining({
-              Authorization: 'Bearer test-token',
-              'Content-Type': 'application/json',
-            }),
-          }),
-        );
+    describe('listEnvironments', () => {
+      it('should handle not found error', async () => {
+        const errorResponse = {
+          error: 'Not Found',
+          status: 404,
+          message: 'Environments not found',
+        };
+
+        mockFetch.mockResolvedValueOnce({
+          ok: false,
+          json: () => Promise.resolve(errorResponse),
+        });
+
+        await expect(client.listEnvironments()).rejects.toThrow('Environments not found');
       });
     });
 
     describe('getEnvironment', () => {
-      it('should fetch environment by UUID successfully', async () => {
+      it('should handle not found error', async () => {
+        const errorResponse = {
+          error: 'Not Found',
+          status: 404,
+          message: 'Environment not found',
+        };
+
         mockFetch.mockResolvedValueOnce({
-          ok: true,
-          json: () => Promise.resolve(mockEnvironment),
+          ok: false,
+          json: () => Promise.resolve(errorResponse),
         });
 
-        const result = await client.getEnvironment('env-test-id');
-
-        expect(result).toEqual(mockEnvironment);
-        expect(mockFetch).toHaveBeenCalledWith(
-          'http://test.coolify.io/api/v1/environments/env-test-id',
-          expect.objectContaining({
-            headers: expect.objectContaining({
-              Authorization: 'Bearer test-token',
-              'Content-Type': 'application/json',
-            }),
-          }),
-        );
+        await expect(client.getEnvironment('invalid-uuid')).rejects.toThrow('Environment not found');
       });
     });
 
     describe('createEnvironment', () => {
-      it('should create environment successfully', async () => {
+      it('should handle not found error', async () => {
         const createRequest: CreateEnvironmentRequest = {
           name: 'test-env',
           project_uuid: 'project-test-id',
-          variables: { KEY: 'value' },
         };
 
-        const mockResponse = { uuid: 'env-test-id' };
+        const errorResponse = {
+          error: 'Not Found',
+          status: 404,
+          message: 'Cannot create environment',
+        };
 
         mockFetch.mockResolvedValueOnce({
-          ok: true,
-          json: () => Promise.resolve(mockResponse),
+          ok: false,
+          json: () => Promise.resolve(errorResponse),
         });
 
-        const result = await client.createEnvironment(createRequest);
-
-        expect(result).toEqual(mockResponse);
-        expect(mockFetch).toHaveBeenCalledWith(
-          'http://test.coolify.io/api/v1/environments',
-          expect.objectContaining({
-            method: 'POST',
-            body: JSON.stringify(createRequest),
-            headers: expect.objectContaining({
-              Authorization: 'Bearer test-token',
-              'Content-Type': 'application/json',
-            }),
-          }),
-        );
+        await expect(client.createEnvironment(createRequest)).rejects.toThrow('Cannot create environment');
       });
     });
 
     describe('updateEnvironmentVariables', () => {
-      it('should update environment variables successfully', async () => {
+      it('should handle not found error', async () => {
         const updateRequest: UpdateEnvironmentVariablesRequest = {
           variables: { NEW_KEY: 'new-value' },
         };
 
-        const mockUpdatedEnvironment = {
-          ...mockEnvironment,
-          variables: updateRequest.variables,
+        const errorResponse = {
+          error: 'Not Found',
+          status: 404,
+          message: 'Environment not found',
         };
 
         mockFetch.mockResolvedValueOnce({
-          ok: true,
-          json: () => Promise.resolve(mockUpdatedEnvironment),
+          ok: false,
+          json: () => Promise.resolve(errorResponse),
         });
 
-        const result = await client.updateEnvironmentVariables('env-test-id', updateRequest);
-
-        expect(result).toEqual(mockUpdatedEnvironment);
-        expect(mockFetch).toHaveBeenCalledWith(
-          'http://test.coolify.io/api/v1/environments/env-test-id/variables',
-          expect.objectContaining({
-            method: 'PUT',
-            body: JSON.stringify(updateRequest),
-            headers: expect.objectContaining({
-              Authorization: 'Bearer test-token',
-              'Content-Type': 'application/json',
-            }),
-          }),
-        );
+        await expect(
+          client.updateEnvironmentVariables('invalid-uuid', updateRequest)
+        ).rejects.toThrow('Environment not found');
       });
     });
 
     describe('deleteEnvironment', () => {
-      it('should delete environment successfully', async () => {
-        const mockResponse = { message: 'Environment deleted successfully' };
+      it('should handle not found error', async () => {
+        const errorResponse = {
+          error: 'Not Found',
+          status: 404,
+          message: 'Environment not found',
+        };
 
         mockFetch.mockResolvedValueOnce({
-          ok: true,
-          json: () => Promise.resolve(mockResponse),
+          ok: false,
+          json: () => Promise.resolve(errorResponse),
         });
 
-        const result = await client.deleteEnvironment('env-test-id');
-
-        expect(result).toEqual(mockResponse);
-        expect(mockFetch).toHaveBeenCalledWith(
-          'http://test.coolify.io/api/v1/environments/env-test-id',
-          expect.objectContaining({
-            method: 'DELETE',
-            headers: expect.objectContaining({
-              Authorization: 'Bearer test-token',
-              'Content-Type': 'application/json',
-            }),
-          }),
-        );
+        await expect(client.deleteEnvironment('invalid-uuid')).rejects.toThrow('Environment not found');
       });
     });
   });

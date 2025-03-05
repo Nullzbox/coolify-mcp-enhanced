@@ -170,69 +170,37 @@ await client.delete_project(uuid: string)
 
 ### Environment Management
 
-#### list_environments
-
-List all environments or environments for a specific project.
-
-```typescript
-// Returns: Environment[]
-await client.list_environments(project_uuid?: string)
-```
-
-#### get_environment
-
-Get detailed information about a specific environment.
-
-```typescript
-// Returns: Environment
-await client.get_environment(uuid: string)
-```
-
 #### get_project_environment
 
-Get a specific environment within a project.
+Get a specific environment within a project. This is the recommended method for retrieving environment information.
 
 ```typescript
 // Returns: Environment
-await client.get_project_environment(
+await client.getEnvironment(
   project_uuid: string,
   environment_name_or_uuid: string
 )
 ```
 
-#### create_environment
-
-Create a new environment.
-
+Example:
 ```typescript
-// Returns: { uuid: string }
-await client.create_environment({
-  name: string,
-  project_uuid: string,
-  variables?: Record<string, string>
-})
+const environment = await client.getProjectEnvironment(
+  'ikokwc8sk00wk8sg8gkwoscw',
+  'production'
+);
 ```
 
-#### update_environment_variables
+#### Other Environment Methods
 
-Update variables for a specific environment.
+The following methods are currently not supported by the API and will return "Not found" errors:
 
-```typescript
-// Returns: Environment
-await client.update_environment_variables(
-  uuid: string,
-  { variables: Record<string, string> }
-)
-```
+- `listEnvironments`
+- `getEnvironment`
+- `createEnvironment`
+- `updateEnvironmentVariables`
+- `deleteEnvironment`
 
-#### delete_environment
-
-Delete an environment.
-
-```typescript
-// Returns: { message: string }
-await client.delete_environment(uuid: string)
-```
+We recommend using `getProjectEnvironment` for all environment-related operations until the API support for these methods is implemented.
 
 ## Type Definitions
 
