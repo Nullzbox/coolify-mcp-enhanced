@@ -11,6 +11,10 @@ import {
   CreateProjectRequest,
   UpdateProjectRequest,
   Environment,
+  Application,
+  CreateApplicationRequest,
+  Deployment,
+  LogEntry,
 } from '../types/coolify.js';
 import { z } from 'zod';
 
@@ -264,6 +268,151 @@ export class CoolifyMcpServer {
       },
     );
 
+    this.server.tool(
+      'list_applications',
+      'List all applications or filter by environment',
+      {
+        environment_uuid: z.string().optional().describe('Optional UUID of the environment to filter by'),
+      },
+      async (params) => {
+        try {
+          const applications = await this.client.listApplications(params.environment_uuid);
+          return {
+            content: [{ type: 'text', text: JSON.stringify(applications) }],
+            isError: false,
+          };
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+          return {
+            content: [{ type: 'text', text: errorMessage }],
+            isError: true,
+          };
+        }
+      },
+    );
+
+    this.server.tool(
+      'get_application',
+      'Get details about a specific application',
+      {
+        uuid: z.string().describe('UUID of the application to get details for'),
+      },
+      async (params) => {
+        try {
+          const application = await this.client.getApplication(params.uuid);
+          return {
+            content: [{ type: 'text', text: JSON.stringify(application) }],
+            isError: false,
+          };
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+          return {
+            content: [{ type: 'text', text: errorMessage }],
+            isError: true,
+          };
+        }
+      },
+    );
+
+    this.server.tool(
+      'create_application',
+      'Create a new application from a public repository',
+      {
+        project_uuid: z.string().describe('UUID of the project'),
+        environment_uuid: z.string().describe('UUID of the environment'),
+        git_repository: z.string().describe('URL of the git repository'),
+        git_branch: z.string().describe('Branch to deploy'),
+        build_pack: z.enum(['nixpacks', 'static', 'dockerfile', 'dockercompose']).describe('Build pack to use'),
+        ports_exposes: z.string().describe('Ports to expose (comma-separated)'),
+        name: z.string().optional().describe('Optional name for the application'),
+      },
+      async (params) => {
+        try {
+          const application = await this.client.createApplication(params);
+          return {
+            content: [{ type: 'text', text: JSON.stringify(application) }],
+            isError: false,
+          };
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+          return {
+            content: [{ type: 'text', text: errorMessage }],
+            isError: true,
+          };
+        }
+      },
+    );
+
+    this.server.tool(
+      'delete_application',
+      'Delete an application',
+      {
+        uuid: z.string().describe('UUID of the application to delete'),
+      },
+      async (params) => {
+        try {
+          await this.client.deleteApplication(params.uuid);
+          return {
+            content: [{ type: 'text', text: 'Application deleted successfully' }],
+            isError: false,
+          };
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+          return {
+            content: [{ type: 'text', text: errorMessage }],
+            isError: true,
+          };
+        }
+      },
+    );
+
+    this.server.tool(
+      'deploy_application',
+      'Trigger a deployment for an application',
+      {
+        uuid: z.string().describe('UUID of the application to deploy'),
+      },
+      async (params) => {
+        try {
+          const deployment = await this.client.deployApplication(params.uuid);
+          return {
+            content: [{ type: 'text', text: JSON.stringify(deployment) }],
+            isError: false,
+          };
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+          return {
+            content: [{ type: 'text', text: errorMessage }],
+            isError: true,
+          };
+        }
+      },
+    );
+
+    this.server.tool(
+      'get_application_logs',
+      'Get logs for an application',
+      {
+        uuid: z.string().describe('UUID of the application'),
+        since: z.string().optional().describe('Optional timestamp to get logs since (ISO format)'),
+      },
+      async (params) => {
+        try {
+          const logs = await this.client.getApplicationLogs(params.uuid, params.since);
+          return {
+            content: [{ type: 'text', text: JSON.stringify(logs) }],
+            isError: false,
+          };
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+          return {
+            content: [{ type: 'text', text: errorMessage }],
+            isError: true,
+          };
+        }
+      },
+    );
+
     // End of tool definitions
   }
 
@@ -317,5 +466,30 @@ export class CoolifyMcpServer {
     environmentNameOrUuid: string,
   ): Promise<Environment> {
     return this.client.getProjectEnvironment(projectUuid, environmentNameOrUuid);
+  }
+
+  async list_applications(environmentUuid?: string): Promise<Application[]> {
+    return this.client.listApplications(environmentUuid);
+  }
+
+  async get_application(uuid: string): Promise<Application> {
+    return this.client.getApplication(uuid);
+  }
+
+  async create_application(application: CreateApplicationRequest): Promise<{ uuid: string }> {
+    return this.client.createApplication(application);
+  }
+
+  async delete_application(uuid: string): Promise<{ message: string }> {
+    await this.client.deleteApplication(uuid);
+    return { message: 'Application deleted successfully' };
+  }
+
+  async deploy_application(uuid: string): Promise<Deployment> {
+    return this.client.deployApplication(uuid);
+  }
+
+  async get_application_logs(uuid: string, since?: string): Promise<LogEntry[]> {
+    return this.client.getApplicationLogs(uuid, since);
   }
 }

@@ -5,6 +5,10 @@ import type {
   ValidationResponse,
   Project,
   Environment,
+  Application,
+  CreateApplicationRequest,
+  Deployment,
+  LogEntry,
 } from '../types/coolify.js';
 
 describe('CoolifyMcpServer', () => {
@@ -161,6 +165,135 @@ describe('CoolifyMcpServer', () => {
 
         await server.get_project_environment('test-project-uuid', 'test-env-uuid');
         expect(spy).toHaveBeenCalledWith('test-project-uuid', 'test-env-uuid');
+      });
+    });
+  });
+
+  describe('Application Management', () => {
+    const mockApplication: Application = {
+      id: 1,
+      uuid: 'test-app-uuid',
+      name: 'test-app',
+      environment_uuid: 'test-env-uuid',
+      project_uuid: 'test-project-uuid',
+      git_repository: 'https://github.com/test/repo',
+      git_branch: 'main',
+      build_pack: 'nixpacks',
+      ports_exposes: '3000',
+      status: 'running',
+      created_at: '2024-03-05T12:00:00Z',
+      updated_at: '2024-03-05T12:00:00Z',
+    };
+
+    const mockDeployment: Deployment = {
+      id: 1,
+      uuid: 'test-deployment-uuid',
+      application_uuid: 'test-app-uuid',
+      status: 'in_progress',
+      created_at: '2024-03-05T12:00:00Z',
+      updated_at: '2024-03-05T12:00:00Z',
+    };
+
+    const mockLogs: LogEntry[] = [
+      {
+        timestamp: '2024-03-05T12:00:00Z',
+        level: 'info',
+        message: 'Application started',
+      },
+    ];
+
+    describe('list_applications', () => {
+      it('should call client listApplications', async () => {
+        const spy = jest.spyOn(server['client'], 'listApplications').mockResolvedValue([mockApplication]);
+
+        const result = await server.list_applications();
+
+        expect(result).toEqual([mockApplication]);
+        expect(spy).toHaveBeenCalledWith(undefined);
+      });
+
+      it('should call client listApplications with environment UUID', async () => {
+        const spy = jest.spyOn(server['client'], 'listApplications').mockResolvedValue([mockApplication]);
+
+        const result = await server.list_applications('test-env-uuid');
+
+        expect(result).toEqual([mockApplication]);
+        expect(spy).toHaveBeenCalledWith('test-env-uuid');
+      });
+    });
+
+    describe('get_application', () => {
+      it('should call client getApplication', async () => {
+        const spy = jest.spyOn(server['client'], 'getApplication').mockResolvedValue(mockApplication);
+
+        const result = await server.get_application('test-app-uuid');
+
+        expect(result).toEqual(mockApplication);
+        expect(spy).toHaveBeenCalledWith('test-app-uuid');
+      });
+    });
+
+    describe('create_application', () => {
+      it('should call client createApplication', async () => {
+        const spy = jest.spyOn(server['client'], 'createApplication').mockResolvedValue(mockApplication);
+
+        const createRequest: CreateApplicationRequest = {
+          project_uuid: 'test-project-uuid',
+          environment_uuid: 'test-env-uuid',
+          git_repository: 'https://github.com/test/repo',
+          git_branch: 'main',
+          build_pack: 'nixpacks',
+          ports_exposes: '3000',
+          name: 'test-app',
+        };
+
+        const result = await server.create_application(createRequest);
+
+        expect(result).toEqual(mockApplication);
+        expect(spy).toHaveBeenCalledWith(createRequest);
+      });
+    });
+
+    describe('delete_application', () => {
+      it('should call client deleteApplication', async () => {
+        const spy = jest.spyOn(server['client'], 'deleteApplication').mockResolvedValue(undefined);
+
+        const result = await server.delete_application('test-app-uuid');
+
+        expect(result).toEqual({ message: 'Application deleted successfully' });
+        expect(spy).toHaveBeenCalledWith('test-app-uuid');
+      });
+    });
+
+    describe('deploy_application', () => {
+      it('should call client deployApplication', async () => {
+        const spy = jest.spyOn(server['client'], 'deployApplication').mockResolvedValue(mockDeployment);
+
+        const result = await server.deploy_application('test-app-uuid');
+
+        expect(result).toEqual(mockDeployment);
+        expect(spy).toHaveBeenCalledWith('test-app-uuid');
+      });
+    });
+
+    describe('get_application_logs', () => {
+      it('should call client getApplicationLogs without since parameter', async () => {
+        const spy = jest.spyOn(server['client'], 'getApplicationLogs').mockResolvedValue(mockLogs);
+
+        const result = await server.get_application_logs('test-app-uuid');
+
+        expect(result).toEqual(mockLogs);
+        expect(spy).toHaveBeenCalledWith('test-app-uuid', undefined);
+      });
+
+      it('should call client getApplicationLogs with since parameter', async () => {
+        const spy = jest.spyOn(server['client'], 'getApplicationLogs').mockResolvedValue(mockLogs);
+        const since = '2024-03-05T11:00:00Z';
+
+        const result = await server.get_application_logs('test-app-uuid', since);
+
+        expect(result).toEqual(mockLogs);
+        expect(spy).toHaveBeenCalledWith('test-app-uuid', since);
       });
     });
   });

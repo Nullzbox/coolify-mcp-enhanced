@@ -69,3 +69,43 @@ export interface UpdateProjectRequest {
   name?: string;
   description?: string;
 }
+
+export interface Application {
+  id: number;
+  uuid: string;
+  name: string;
+  environment_uuid: string;
+  project_uuid: string;
+  git_repository: string;
+  git_branch: string;
+  build_pack: 'nixpacks' | 'static' | 'dockerfile' | 'dockercompose';
+  ports_exposes: string;
+  status: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateApplicationRequest {
+  project_uuid: string;
+  environment_uuid: string;
+  git_repository: string;
+  git_branch: string;
+  build_pack: 'nixpacks' | 'static' | 'dockerfile' | 'dockercompose';
+  ports_exposes: string;
+  name?: string;
+}
+
+export interface Deployment {
+  id: number;
+  uuid: string;
+  application_uuid: string;
+  status: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface LogEntry {
+  timestamp: string;
+  level: string;
+  message: string;
+}

@@ -1,5 +1,13 @@
 import { CoolifyClient } from '../lib/coolify-client.js';
-import type { ServerInfo, ServerResources, Environment } from '../types/coolify.js';
+import type {
+  ServerInfo,
+  ServerResources,
+  Environment,
+  Application,
+  CreateApplicationRequest,
+  Deployment,
+  LogEntry,
+} from '../types/coolify.js';
 
 // Mock fetch globally
 const mockFetch = jest.fn();
@@ -290,6 +298,218 @@ describe('CoolifyClient', () => {
         await expect(
           client.getProjectEnvironment('invalid-project', 'invalid-env'),
         ).rejects.toThrow('Environment not found');
+      });
+    });
+  });
+
+  describe('Application Management', () => {
+    const mockApplication: Application = {
+      id: 1,
+      uuid: 'test-app-uuid',
+      name: 'test-app',
+      environment_uuid: 'test-env-uuid',
+      project_uuid: 'test-project-uuid',
+      git_repository: 'https://github.com/test/repo',
+      git_branch: 'main',
+      build_pack: 'nixpacks',
+      ports_exposes: '3000',
+      status: 'running',
+      created_at: '2024-03-05T12:00:00Z',
+      updated_at: '2024-03-05T12:00:00Z',
+    };
+
+    const mockDeployment: Deployment = {
+      id: 1,
+      uuid: 'test-deployment-uuid',
+      application_uuid: 'test-app-uuid',
+      status: 'in_progress',
+      created_at: '2024-03-05T12:00:00Z',
+      updated_at: '2024-03-05T12:00:00Z',
+    };
+
+    const mockLogs: LogEntry[] = [
+      {
+        timestamp: '2024-03-05T12:00:00Z',
+        level: 'info',
+        message: 'Application started',
+      },
+    ];
+
+    describe('listApplications', () => {
+      it('should fetch all applications when no environment UUID is provided', async () => {
+        mockFetch.mockResolvedValueOnce({
+          ok: true,
+          json: async () => [mockApplication],
+        });
+
+        const result = await client.listApplications();
+
+        expect(result).toEqual([mockApplication]);
+        expect(mockFetch).toHaveBeenCalledWith(
+          'http://test.coolify.io/api/v1/applications',
+          expect.objectContaining({
+            headers: expect.objectContaining({
+              Authorization: 'Bearer test-token',
+            }),
+          }),
+        );
+      });
+
+      it('should fetch applications filtered by environment UUID', async () => {
+        mockFetch.mockResolvedValueOnce({
+          ok: true,
+          json: async () => [mockApplication],
+        });
+
+        const result = await client.listApplications('test-env-uuid');
+
+        expect(result).toEqual([mockApplication]);
+        expect(mockFetch).toHaveBeenCalledWith(
+          'http://test.coolify.io/api/v1/applications?environment_uuid=test-env-uuid',
+          expect.objectContaining({
+            headers: expect.objectContaining({
+              Authorization: 'Bearer test-token',
+            }),
+          }),
+        );
+      });
+    });
+
+    describe('getApplication', () => {
+      it('should fetch application details successfully', async () => {
+        mockFetch.mockResolvedValueOnce({
+          ok: true,
+          json: async () => mockApplication,
+        });
+
+        const result = await client.getApplication('test-app-uuid');
+
+        expect(result).toEqual(mockApplication);
+        expect(mockFetch).toHaveBeenCalledWith(
+          'http://test.coolify.io/api/v1/applications/test-app-uuid',
+          expect.objectContaining({
+            headers: expect.objectContaining({
+              Authorization: 'Bearer test-token',
+            }),
+          }),
+        );
+      });
+    });
+
+    describe('createApplication', () => {
+      it('should create a new application successfully', async () => {
+        mockFetch.mockResolvedValueOnce({
+          ok: true,
+          json: async () => mockApplication,
+        });
+
+        const createRequest: CreateApplicationRequest = {
+          project_uuid: 'test-project-uuid',
+          environment_uuid: 'test-env-uuid',
+          git_repository: 'https://github.com/test/repo',
+          git_branch: 'main',
+          build_pack: 'nixpacks',
+          ports_exposes: '3000',
+          name: 'test-app',
+        };
+
+        const result = await client.createApplication(createRequest);
+
+        expect(result).toEqual(mockApplication);
+        expect(mockFetch).toHaveBeenCalledWith(
+          'http://test.coolify.io/api/v1/applications/public',
+          expect.objectContaining({
+            method: 'POST',
+            body: JSON.stringify(createRequest),
+            headers: expect.objectContaining({
+              Authorization: 'Bearer test-token',
+            }),
+          }),
+        );
+      });
+    });
+
+    describe('deleteApplication', () => {
+      it('should delete an application successfully', async () => {
+        mockFetch.mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({}),
+        });
+
+        await client.deleteApplication('test-app-uuid');
+
+        expect(mockFetch).toHaveBeenCalledWith(
+          'http://test.coolify.io/api/v1/applications/test-app-uuid',
+          expect.objectContaining({
+            method: 'DELETE',
+            headers: expect.objectContaining({
+              Authorization: 'Bearer test-token',
+            }),
+          }),
+        );
+      });
+    });
+
+    describe('deployApplication', () => {
+      it('should trigger application deployment successfully', async () => {
+        mockFetch.mockResolvedValueOnce({
+          ok: true,
+          json: async () => mockDeployment,
+        });
+
+        const result = await client.deployApplication('test-app-uuid');
+
+        expect(result).toEqual(mockDeployment);
+        expect(mockFetch).toHaveBeenCalledWith(
+          'http://test.coolify.io/api/v1/applications/test-app-uuid/deploy',
+          expect.objectContaining({
+            method: 'POST',
+            headers: expect.objectContaining({
+              Authorization: 'Bearer test-token',
+            }),
+          }),
+        );
+      });
+    });
+
+    describe('getApplicationLogs', () => {
+      it('should fetch application logs without since parameter', async () => {
+        mockFetch.mockResolvedValueOnce({
+          ok: true,
+          json: async () => mockLogs,
+        });
+
+        const result = await client.getApplicationLogs('test-app-uuid');
+
+        expect(result).toEqual(mockLogs);
+        expect(mockFetch).toHaveBeenCalledWith(
+          'http://test.coolify.io/api/v1/applications/test-app-uuid/logs',
+          expect.objectContaining({
+            headers: expect.objectContaining({
+              Authorization: 'Bearer test-token',
+            }),
+          }),
+        );
+      });
+
+      it('should fetch application logs with since parameter', async () => {
+        mockFetch.mockResolvedValueOnce({
+          ok: true,
+          json: async () => mockLogs,
+        });
+
+        const since = '2024-03-05T11:00:00Z';
+        const result = await client.getApplicationLogs('test-app-uuid', since);
+
+        expect(result).toEqual(mockLogs);
+        expect(mockFetch).toHaveBeenCalledWith(
+          `http://test.coolify.io/api/v1/applications/test-app-uuid/logs?since=${since}`,
+          expect.objectContaining({
+            headers: expect.objectContaining({
+              Authorization: 'Bearer test-token',
+            }),
+          }),
+        );
       });
     });
   });
