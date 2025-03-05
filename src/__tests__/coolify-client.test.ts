@@ -1,5 +1,5 @@
 import { CoolifyClient } from '../lib/coolify-client.js';
-import type { ServerInfo, ServerResources } from '../types/coolify.js';
+import type { ServerInfo, ServerResources, Environment, CreateEnvironmentRequest, UpdateEnvironmentVariablesRequest } from '../types/coolify.js';
 
 // Mock fetch globally
 const mockFetch = jest.fn();
@@ -14,6 +14,8 @@ describe('CoolifyClient', () => {
       accessToken: 'test-token',
     });
     mockFetch.mockClear();
+    // Reset any global mock implementations
+    mockFetch.mockReset();
   });
 
   describe('listServers', () => {
@@ -180,21 +182,23 @@ describe('CoolifyClient', () => {
     const mockResponse = {
       uuid: 'test-uuid',
       name: 'test-server',
-      description: 'Test server',
-      ip: '127.0.0.1',
-      port: 22,
-      is_reachable: true,
-      is_usable: true,
+      status: 'running',
+      version: '1.0.0',
+      resources: {
+        cpu: 50,
+        memory: 60,
+        disk: 70,
+      },
     };
 
-    global.fetch = jest.fn().mockResolvedValue({
+    mockFetch.mockResolvedValueOnce({
       ok: true,
       json: () => Promise.resolve(mockResponse),
     });
 
     const server = await client.getServer('test-uuid');
     expect(server).toEqual(mockResponse);
-    expect(global.fetch).toHaveBeenCalledWith(
+    expect(mockFetch).toHaveBeenCalledWith(
       'http://test.coolify.io/api/v1/servers/test-uuid',
       expect.objectContaining({
         headers: {
@@ -218,14 +222,14 @@ describe('CoolifyClient', () => {
       },
     ];
 
-    global.fetch = jest.fn().mockResolvedValue({
+    mockFetch.mockResolvedValueOnce({
       ok: true,
       json: () => Promise.resolve(mockResponse),
     });
 
     const resources = await client.getServerResources('test-uuid');
     expect(resources).toEqual(mockResponse);
-    expect(global.fetch).toHaveBeenCalledWith(
+    expect(mockFetch).toHaveBeenCalledWith(
       'http://test.coolify.io/api/v1/servers/test-uuid/resources',
       expect.objectContaining({
         headers: {
@@ -234,5 +238,175 @@ describe('CoolifyClient', () => {
         },
       }),
     );
+  });
+
+  describe('Environment Management', () => {
+    const mockEnvironment: Environment = {
+      id: 1,
+      uuid: 'env-test-id',
+      name: 'test-env',
+      project_uuid: 'project-test-id',
+      variables: { KEY: 'value' },
+      created_at: '2024-03-19T12:00:00Z',
+      updated_at: '2024-03-19T12:00:00Z',
+    };
+
+    beforeEach(() => {
+      mockFetch.mockClear();
+    });
+
+    describe('listEnvironments', () => {
+      it('should fetch all environments successfully', async () => {
+        mockFetch.mockResolvedValueOnce({
+          ok: true,
+          json: () => Promise.resolve([mockEnvironment])
+        });
+
+        const result = await client.listEnvironments();
+
+        expect(result).toEqual([mockEnvironment]);
+        expect(mockFetch).toHaveBeenCalledWith(
+          'http://test.coolify.io/api/v1/environments',
+          expect.objectContaining({
+            headers: expect.objectContaining({
+              Authorization: 'Bearer test-token',
+              'Content-Type': 'application/json',
+            }),
+          }),
+        );
+      });
+
+      it('should fetch environments by project UUID', async () => {
+        mockFetch.mockResolvedValueOnce({
+          ok: true,
+          json: () => Promise.resolve([mockEnvironment])
+        });
+
+        const result = await client.listEnvironments('project-test-id');
+
+        expect(result).toEqual([mockEnvironment]);
+        expect(mockFetch).toHaveBeenCalledWith(
+          'http://test.coolify.io/api/v1/environments?project_uuid=project-test-id',
+          expect.objectContaining({
+            headers: expect.objectContaining({
+              Authorization: 'Bearer test-token',
+              'Content-Type': 'application/json',
+            }),
+          }),
+        );
+      });
+    });
+
+    describe('getEnvironment', () => {
+      it('should fetch environment by UUID successfully', async () => {
+        mockFetch.mockResolvedValueOnce({
+          ok: true,
+          json: () => Promise.resolve(mockEnvironment)
+        });
+
+        const result = await client.getEnvironment('env-test-id');
+
+        expect(result).toEqual(mockEnvironment);
+        expect(mockFetch).toHaveBeenCalledWith(
+          'http://test.coolify.io/api/v1/environments/env-test-id',
+          expect.objectContaining({
+            headers: expect.objectContaining({
+              Authorization: 'Bearer test-token',
+              'Content-Type': 'application/json',
+            }),
+          }),
+        );
+      });
+    });
+
+    describe('createEnvironment', () => {
+      it('should create environment successfully', async () => {
+        const createRequest: CreateEnvironmentRequest = {
+          name: 'test-env',
+          project_uuid: 'project-test-id',
+          variables: { KEY: 'value' },
+        };
+
+        const mockResponse = { uuid: 'env-test-id' };
+
+        mockFetch.mockResolvedValueOnce({
+          ok: true,
+          json: () => Promise.resolve(mockResponse)
+        });
+
+        const result = await client.createEnvironment(createRequest);
+
+        expect(result).toEqual(mockResponse);
+        expect(mockFetch).toHaveBeenCalledWith(
+          'http://test.coolify.io/api/v1/environments',
+          expect.objectContaining({
+            method: 'POST',
+            body: JSON.stringify(createRequest),
+            headers: expect.objectContaining({
+              Authorization: 'Bearer test-token',
+              'Content-Type': 'application/json',
+            }),
+          }),
+        );
+      });
+    });
+
+    describe('updateEnvironmentVariables', () => {
+      it('should update environment variables successfully', async () => {
+        const updateRequest: UpdateEnvironmentVariablesRequest = {
+          variables: { NEW_KEY: 'new-value' },
+        };
+
+        const mockUpdatedEnvironment = {
+          ...mockEnvironment,
+          variables: updateRequest.variables,
+        };
+
+        mockFetch.mockResolvedValueOnce({
+          ok: true,
+          json: () => Promise.resolve(mockUpdatedEnvironment)
+        });
+
+        const result = await client.updateEnvironmentVariables('env-test-id', updateRequest);
+
+        expect(result).toEqual(mockUpdatedEnvironment);
+        expect(mockFetch).toHaveBeenCalledWith(
+          'http://test.coolify.io/api/v1/environments/env-test-id/variables',
+          expect.objectContaining({
+            method: 'PUT',
+            body: JSON.stringify(updateRequest),
+            headers: expect.objectContaining({
+              Authorization: 'Bearer test-token',
+              'Content-Type': 'application/json',
+            }),
+          }),
+        );
+      });
+    });
+
+    describe('deleteEnvironment', () => {
+      it('should delete environment successfully', async () => {
+        const mockResponse = { message: 'Environment deleted successfully' };
+
+        mockFetch.mockResolvedValueOnce({
+          ok: true,
+          json: () => Promise.resolve(mockResponse)
+        });
+
+        const result = await client.deleteEnvironment('env-test-id');
+
+        expect(result).toEqual(mockResponse);
+        expect(mockFetch).toHaveBeenCalledWith(
+          'http://test.coolify.io/api/v1/environments/env-test-id',
+          expect.objectContaining({
+            method: 'DELETE',
+            headers: expect.objectContaining({
+              Authorization: 'Bearer test-token',
+              'Content-Type': 'application/json',
+            }),
+          }),
+        );
+      });
+    });
   });
 });
