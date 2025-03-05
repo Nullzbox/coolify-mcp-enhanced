@@ -272,7 +272,10 @@ export class CoolifyMcpServer {
       'list_applications',
       'List all applications or filter by environment',
       {
-        environment_uuid: z.string().optional().describe('Optional UUID of the environment to filter by'),
+        environment_uuid: z
+          .string()
+          .optional()
+          .describe('Optional UUID of the environment to filter by'),
       },
       async (params) => {
         try {
@@ -322,7 +325,9 @@ export class CoolifyMcpServer {
         environment_uuid: z.string().describe('UUID of the environment'),
         git_repository: z.string().describe('URL of the git repository'),
         git_branch: z.string().describe('Branch to deploy'),
-        build_pack: z.enum(['nixpacks', 'static', 'dockerfile', 'dockercompose']).describe('Build pack to use'),
+        build_pack: z
+          .enum(['nixpacks', 'static', 'dockerfile', 'dockercompose'])
+          .describe('Build pack to use'),
         ports_exposes: z.string().describe('Ports to expose (comma-separated)'),
         name: z.string().optional().describe('Optional name for the application'),
       },

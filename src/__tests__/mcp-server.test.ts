@@ -204,7 +204,9 @@ describe('CoolifyMcpServer', () => {
 
     describe('list_applications', () => {
       it('should call client listApplications', async () => {
-        const spy = jest.spyOn(server['client'], 'listApplications').mockResolvedValue([mockApplication]);
+        const spy = jest
+          .spyOn(server['client'], 'listApplications')
+          .mockResolvedValue([mockApplication]);
 
         const result = await server.list_applications();
 
@@ -213,7 +215,9 @@ describe('CoolifyMcpServer', () => {
       });
 
       it('should call client listApplications with environment UUID', async () => {
-        const spy = jest.spyOn(server['client'], 'listApplications').mockResolvedValue([mockApplication]);
+        const spy = jest
+          .spyOn(server['client'], 'listApplications')
+          .mockResolvedValue([mockApplication]);
 
         const result = await server.list_applications('test-env-uuid');
 
@@ -224,7 +228,9 @@ describe('CoolifyMcpServer', () => {
 
     describe('get_application', () => {
       it('should call client getApplication', async () => {
-        const spy = jest.spyOn(server['client'], 'getApplication').mockResolvedValue(mockApplication);
+        const spy = jest
+          .spyOn(server['client'], 'getApplication')
+          .mockResolvedValue(mockApplication);
 
         const result = await server.get_application('test-app-uuid');
 
@@ -235,7 +241,9 @@ describe('CoolifyMcpServer', () => {
 
     describe('create_application', () => {
       it('should call client createApplication', async () => {
-        const spy = jest.spyOn(server['client'], 'createApplication').mockResolvedValue(mockApplication);
+        const spy = jest
+          .spyOn(server['client'], 'createApplication')
+          .mockResolvedValue(mockApplication);
 
         const createRequest: CreateApplicationRequest = {
           project_uuid: 'test-project-uuid',
@@ -267,7 +275,9 @@ describe('CoolifyMcpServer', () => {
 
     describe('deploy_application', () => {
       it('should call client deployApplication', async () => {
-        const spy = jest.spyOn(server['client'], 'deployApplication').mockResolvedValue(mockDeployment);
+        const spy = jest
+          .spyOn(server['client'], 'deployApplication')
+          .mockResolvedValue(mockDeployment);
 
         const result = await server.deploy_application('test-app-uuid');
 
