@@ -1,6 +1,11 @@
 import { CoolifyMcpServer } from '../lib/mcp-server.js';
 import { jest } from '@jest/globals';
-import type { ServerResources, ValidationResponse, Project, Environment } from '../types/coolify.js';
+import type {
+  ServerResources,
+  ValidationResponse,
+  Project,
+  Environment,
+} from '../types/coolify.js';
 
 describe('CoolifyMcpServer', () => {
   const mockConfig = {
@@ -66,9 +71,7 @@ describe('CoolifyMcpServer', () => {
         },
       ];
 
-      const spy = jest
-        .spyOn(server['client'], 'listProjects')
-        .mockResolvedValue(mockProjects);
+      const spy = jest.spyOn(server['client'], 'listProjects').mockResolvedValue(mockProjects);
 
       await server.list_projects();
       expect(spy).toHaveBeenCalled();
@@ -85,9 +88,7 @@ describe('CoolifyMcpServer', () => {
         environments: [],
       };
 
-      const spy = jest
-        .spyOn(server['client'], 'getProject')
-        .mockResolvedValue(mockProject);
+      const spy = jest.spyOn(server['client'], 'getProject').mockResolvedValue(mockProject);
 
       await server.get_project('test-project-uuid');
       expect(spy).toHaveBeenCalledWith('test-project-uuid');
@@ -102,9 +103,7 @@ describe('CoolifyMcpServer', () => {
         description: 'New project description',
       };
 
-      const spy = jest
-        .spyOn(server['client'], 'createProject')
-        .mockResolvedValue(mockResponse);
+      const spy = jest.spyOn(server['client'], 'createProject').mockResolvedValue(mockResponse);
 
       await server.create_project(createRequest);
       expect(spy).toHaveBeenCalledWith(createRequest);
@@ -126,9 +125,7 @@ describe('CoolifyMcpServer', () => {
         description: 'Updated description',
       };
 
-      const spy = jest
-        .spyOn(server['client'], 'updateProject')
-        .mockResolvedValue(mockProject);
+      const spy = jest.spyOn(server['client'], 'updateProject').mockResolvedValue(mockProject);
 
       await server.update_project('test-project-uuid', updateRequest);
       expect(spy).toHaveBeenCalledWith('test-project-uuid', updateRequest);
@@ -139,9 +136,7 @@ describe('CoolifyMcpServer', () => {
     it('should call client deleteProject', async () => {
       const mockResponse = { message: 'Project deleted successfully' };
 
-      const spy = jest
-        .spyOn(server['client'], 'deleteProject')
-        .mockResolvedValue(mockResponse);
+      const spy = jest.spyOn(server['client'], 'deleteProject').mockResolvedValue(mockResponse);
 
       await server.delete_project('test-project-uuid');
       expect(spy).toHaveBeenCalledWith('test-project-uuid');
