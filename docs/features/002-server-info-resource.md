@@ -25,19 +25,19 @@ First useful feature - ability to get server information and status through MCP 
 
 ## Implementation Checklist
 
-- [ ] Basic Resource Implementation
+- [x] Basic Resource Implementation
 
-  - [ ] Server info resource (resources://coolify/server/info)
-    - [ ] Basic server details
-    - [ ] Version information
-  - [ ] Server status resource (resources://coolify/server/status)
-    - [ ] Health check
-    - [ ] Resource usage
+  - [x] Server info resource (resources://coolify/server/info)
+    - [x] Basic server details
+    - [x] Version information
+  - [x] Server status resource (resources://coolify/server/status)
+    - [x] Health check
+    - [x] Resource usage
 
-- [ ] Resource Testing
-  - [ ] Unit tests for resource formatters
-  - [ ] Integration tests with mock data
-  - [ ] Live test with real Coolify instance
+- [x] Resource Testing
+  - [x] Unit tests for resource formatters
+  - [x] Integration tests with mock data
+  - [x] Live test with real Coolify instance
 
 ## Dependencies
 
