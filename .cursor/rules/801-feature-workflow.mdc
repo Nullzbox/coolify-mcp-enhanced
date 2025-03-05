@@ -16,7 +16,11 @@ alwaysApply: true
 - Create feature branch with descriptive name (feature/feature-name)
 - Locate and review feature documentation in docs/features directory
 - Follow documentation requirements systematically
+- Update feature documentation as you complete each item (not at the end)
 - Commit frequently to trigger pre-commit hooks (linting, formatting, tests)
+  - Commit after each significant change (e.g., adding types, client methods, tests)
+  - Keep commits focused and well-described
+  - Use conventional commit messages (feat:, fix:, docs:, etc.)
 - Add comprehensive tests for new functionality
 - Push completed work to remote for PR review
 
@@ -27,13 +31,19 @@ alwaysApply: true
 2. git checkout -b feature/server-info
 3. Review docs/features/002-server-info-resource.md
 4. Implement ServerInfo interface
-5. Add getServerInfo method with tests
-6. Commit to run hooks: "feat: add server info interface"
-7. Implement ServerStatus interface
-8. Add getServerStatus method with tests
-9. Commit to run hooks: "feat: add server status resource"
-10. Fix any linting issues
-11. Push to remote when complete
+5. Commit: "feat: add ServerInfo interface and types"
+6. Add getServerInfo method with tests
+7. Commit: "feat: add getServerInfo method and tests"
+8. Update feature doc to mark interface and method as complete
+9. Commit: "docs: update feature doc for completed ServerInfo items"
+10. Implement ServerStatus interface
+11. Commit: "feat: add ServerStatus interface"
+12. Add getServerStatus method with tests
+13. Commit: "feat: add getServerStatus method and tests"
+14. Update feature doc for completed ServerStatus items
+15. Commit: "docs: update feature doc for completed ServerStatus items"
+16. Fix any linting issues
+17. Push to remote when complete
 </example>
 
 <example type="invalid">
@@ -43,13 +53,15 @@ alwaysApply: true
 3. Skip tests or add them later
 4. Push directly to main
 5. Fix linting issues after PR
+6. Update documentation at the end
 </example>
 
 ## Critical Points
 <critical>
 - ALWAYS work from feature documentation
-- 
+- ALWAYS update documentation AS YOU GO, not at the end
 - NEVER skip tests for new functionality
 - Commit OFTEN to utilize pre-commit hooks
 - Keep commits focused and well-described
+- Use conventional commit messages
 </critical> 
