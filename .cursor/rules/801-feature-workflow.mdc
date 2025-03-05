@@ -1,7 +1,7 @@
 ---
 description: FOLLOW feature development workflow WHEN implementing new features TO ensure consistent, tested, and documented changes
 globs: src/**/*.{ts,tsx}
-alwaysApply: false
+alwaysApply: true
 ---
 
 # Feature Development Workflow

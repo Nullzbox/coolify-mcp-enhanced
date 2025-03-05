@@ -41,3 +41,28 @@ export interface ServerDomain {
 export interface ValidationResponse {
   message: string;
 }
+
+export interface Environment {
+  id: number;
+  uuid: string;
+  name: string;
+  // Additional environment properties will be added as needed
+}
+
+export interface Project {
+  id: number;
+  uuid: string;
+  name: string;
+  description?: string;
+  environments?: Environment[];
+}
+
+export interface CreateProjectRequest {
+  name: string;
+  description?: string;
+}
+
+export interface UpdateProjectRequest {
+  name?: string;
+  description?: string;
+}

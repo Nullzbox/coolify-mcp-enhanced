@@ -1,7 +1,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
 import { CoolifyClient } from './coolify-client.js';
-import { CoolifyConfig, ServerInfo, ServerResources, ServerDomain, ValidationResponse } from '../types/coolify.js';
+import { CoolifyConfig, ServerInfo, ServerResources, ServerDomain, ValidationResponse, Project, CreateProjectRequest, UpdateProjectRequest, Environment } from '../types/coolify.js';
 import { z } from 'zod';
 
 export class CoolifyMcpServer {
@@ -123,6 +123,146 @@ export class CoolifyMcpServer {
         }
       }
     );
+
+    this.server.tool(
+      'list_projects',
+      'List all Coolify projects',
+      {},
+      async () => {
+        try {
+          const projects = await this.client.listProjects();
+          return {
+            content: [{ type: 'text', text: JSON.stringify(projects) }],
+            isError: false
+          };
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+          return {
+            content: [{ type: 'text', text: errorMessage }],
+            isError: true
+          };
+        }
+      }
+    );
+
+    this.server.tool(
+      'get_project',
+      'Get details about a specific Coolify project',
+      { uuid: z.string().describe('UUID of the project to get details for') },
+      async (params) => {
+        try {
+          const project = await this.client.getProject(params.uuid);
+          return {
+            content: [{ type: 'text', text: JSON.stringify(project) }],
+            isError: false
+          };
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+          return {
+            content: [{ type: 'text', text: errorMessage }],
+            isError: true
+          };
+        }
+      }
+    );
+
+    this.server.tool(
+      'create_project',
+      'Create a new Coolify project',
+      {
+        name: z.string().describe('Name of the project'),
+        description: z.string().optional().describe('Optional description of the project')
+      },
+      async (params) => {
+        try {
+          const result = await this.client.createProject(params);
+          return {
+            content: [{ type: 'text', text: JSON.stringify(result) }],
+            isError: false
+          };
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+          return {
+            content: [{ type: 'text', text: errorMessage }],
+            isError: true
+          };
+        }
+      }
+    );
+
+    this.server.tool(
+      'update_project',
+      'Update an existing Coolify project',
+      {
+        uuid: z.string().describe('UUID of the project to update'),
+        name: z.string().optional().describe('New name for the project'),
+        description: z.string().optional().describe('New description for the project')
+      },
+      async (params) => {
+        try {
+          const { uuid, ...updateData } = params;
+          const result = await this.client.updateProject(uuid, updateData);
+          return {
+            content: [{ type: 'text', text: JSON.stringify(result) }],
+            isError: false
+          };
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+          return {
+            content: [{ type: 'text', text: errorMessage }],
+            isError: true
+          };
+        }
+      }
+    );
+
+    this.server.tool(
+      'delete_project',
+      'Delete a Coolify project',
+      { uuid: z.string().describe('UUID of the project to delete') },
+      async (params) => {
+        try {
+          const result = await this.client.deleteProject(params.uuid);
+          return {
+            content: [{ type: 'text', text: JSON.stringify(result) }],
+            isError: false
+          };
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+          return {
+            content: [{ type: 'text', text: errorMessage }],
+            isError: true
+          };
+        }
+      }
+    );
+
+    this.server.tool(
+      'get_project_environment',
+      'Get details about a specific environment in a project',
+      {
+        project_uuid: z.string().describe('UUID of the project'),
+        environment_name_or_uuid: z.string().describe('Name or UUID of the environment')
+      },
+      async (params) => {
+        try {
+          const environment = await this.client.getProjectEnvironment(
+            params.project_uuid,
+            params.environment_name_or_uuid
+          );
+          return {
+            content: [{ type: 'text', text: JSON.stringify(environment) }],
+            isError: false
+          };
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+          return {
+            content: [{ type: 'text', text: errorMessage }],
+            isError: true
+          };
+        }
+      }
+    );
   }
 
   async start(transport: Transport): Promise<void> {
@@ -153,5 +293,29 @@ export class CoolifyMcpServer {
 
   async validate_server(uuid: string): Promise<ValidationResponse> {
     return this.client.validateServer(uuid);
+  }
+
+  async list_projects(): Promise<Project[]> {
+    return this.client.listProjects();
+  }
+
+  async get_project(uuid: string): Promise<Project> {
+    return this.client.getProject(uuid);
+  }
+
+  async create_project(project: CreateProjectRequest): Promise<{ uuid: string }> {
+    return this.client.createProject(project);
+  }
+
+  async update_project(uuid: string, project: UpdateProjectRequest): Promise<Project> {
+    return this.client.updateProject(uuid, project);
+  }
+
+  async delete_project(uuid: string): Promise<{ message: string }> {
+    return this.client.deleteProject(uuid);
+  }
+
+  async get_project_environment(projectUuid: string, environmentNameOrUuid: string): Promise<Environment> {
+    return this.client.getProjectEnvironment(projectUuid, environmentNameOrUuid);
   }
 }

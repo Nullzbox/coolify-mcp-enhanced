@@ -1,4 +1,4 @@
-import { CoolifyConfig, ErrorResponse, ServerInfo, ServerResources, ServerDomain, ValidationResponse } from '../types/coolify.js';
+import { CoolifyConfig, ErrorResponse, ServerInfo, ServerResources, ServerDomain, ValidationResponse, Project, CreateProjectRequest, UpdateProjectRequest, Environment } from '../types/coolify.js';
 
 export class CoolifyClient {
   private baseUrl: string;
@@ -15,7 +15,7 @@ export class CoolifyClient {
     this.accessToken = config.accessToken;
   }
 
-  private async request<T>(path: string): Promise<T> {
+  private async request<T>(path: string, options: RequestInit = {}): Promise<T> {
     try {
       const url = `${this.baseUrl}/api/v1${path}`;
       const response = await fetch(url, {
@@ -23,6 +23,7 @@ export class CoolifyClient {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${this.accessToken}`,
         },
+        ...options,
       });
 
       const data = await response.json();
@@ -67,6 +68,38 @@ export class CoolifyClient {
     } catch (error) {
       throw new Error(`Failed to connect to Coolify server: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
+  }
+
+  async listProjects(): Promise<Project[]> {
+    return this.request<Project[]>('/projects');
+  }
+
+  async getProject(uuid: string): Promise<Project> {
+    return this.request<Project>(`/projects/${uuid}`);
+  }
+
+  async createProject(project: CreateProjectRequest): Promise<{ uuid: string }> {
+    return this.request<{ uuid: string }>('/projects', {
+      method: 'POST',
+      body: JSON.stringify(project),
+    });
+  }
+
+  async updateProject(uuid: string, project: UpdateProjectRequest): Promise<Project> {
+    return this.request<Project>(`/projects/${uuid}`, {
+      method: 'PATCH',
+      body: JSON.stringify(project),
+    });
+  }
+
+  async deleteProject(uuid: string): Promise<{ message: string }> {
+    return this.request<{ message: string }>(`/projects/${uuid}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async getProjectEnvironment(projectUuid: string, environmentNameOrUuid: string): Promise<Environment> {
+    return this.request<Environment>(`/projects/${projectUuid}/${environmentNameOrUuid}`);
   }
 
   // Add more methods as needed for other endpoints
