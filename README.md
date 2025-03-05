@@ -21,13 +21,14 @@ A Model Context Protocol (MCP) server implementation for [Coolify](https://cooli
 
 ### Cursor
 
-command: 
+command:
 
 `env COOLIFY_ACCESS_TOKEN:0|your-secret-token COOLIFY_BASE_URL:https://your-coolify-instance.com npx -y @stumason/coolify-mcp`
 
 ## Overview
 
 This MCP server provides a standardized interface for AI models to:
+
 - Query Coolify server information
 - Manage deployments
 - Handle database operations
@@ -127,6 +128,7 @@ src/
 ### Key Components
 
 1. **CoolifyClient**: Handles communication with the Coolify API
+
    - Authentication
    - API request handling
    - Error management
@@ -164,6 +166,7 @@ The project uses Jest for testing. Tests are located in `src/__tests__/` and can
 ## CI/CD
 
 GitHub Actions workflows are configured to:
+
 - Run tests on Node.js 18.x and 20.x
 - Check code formatting
 - Verify build process
@@ -188,6 +191,7 @@ MIT
 ## Support
 
 For support, please:
+
 1. Check the [issues](https://github.com/stumason/coolify-mcp/issues) page
 2. Create a new issue if needed
-3. Join the Coolify community 
+3. Join the Coolify community

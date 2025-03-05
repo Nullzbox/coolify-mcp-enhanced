@@ -1,10 +1,13 @@
 # ADR 009: MCP Prompts Implementation
 
 ## Context
+
 Create reusable prompt templates for common Coolify workflows to make interactions more efficient.
 
 ## Implementation Checklist
+
 - [ ] Deployment Prompts
+
   - [ ] "deploy-application" prompt
     ```typescript
     {
@@ -22,6 +25,7 @@ Create reusable prompt templates for common Coolify workflows to make interactio
     ```
 
 - [ ] Configuration Prompts
+
   - [ ] "configure-database" prompt
     ```typescript
     {
@@ -38,6 +42,7 @@ Create reusable prompt templates for common Coolify workflows to make interactio
     ```
 
 - [ ] Service Management Prompts
+
   - [ ] "setup-service" prompt
     ```typescript
     {
@@ -55,6 +60,7 @@ Create reusable prompt templates for common Coolify workflows to make interactio
     ```
 
 - [ ] Resource Management Prompts
+
   - [ ] "optimize-resources" prompt
     ```typescript
     {
@@ -77,8 +83,9 @@ Create reusable prompt templates for common Coolify workflows to make interactio
   - [ ] Integration tests with actual commands
 
 ## Dependencies
+
 - ADR 001 (Core Server Setup)
 - ADR 005 (Application Deployment)
 - ADR 006 (Database Management)
 - ADR 007 (Service Management)
-- ADR 008 (MCP Resources Implementation) 
+- ADR 008 (MCP Resources Implementation)

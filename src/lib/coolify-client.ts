@@ -1,4 +1,4 @@
-import { CoolifyConfig, ErrorResponse, ServerInfo } from '../types/coolify.js';
+import { CoolifyConfig, ErrorResponse, ServerInfo, ServerStatus } from '../types/coolify.js';
 
 export class CoolifyClient {
   private baseUrl: string;
@@ -9,26 +9,31 @@ export class CoolifyClient {
     this.accessToken = config.accessToken;
   }
 
-  private async request<T>(path: string, options: RequestInit = {}): Promise<T> {
-    const url = `${this.baseUrl}/api/v1${path}`;
-    const headers = {
-      Authorization: `Bearer ${this.accessToken}`,
-      'Content-Type': 'application/json',
-      ...options.headers,
-    };
+  private async request<T>(path: string): Promise<T> {
+    const response = await fetch(`${this.baseUrl}/api/v1${path}`, {
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${this.accessToken}`,
+      },
+    });
 
-    const response = await fetch(url, { ...options, headers });
+    const data = await response.json();
 
     if (!response.ok) {
-      const error: ErrorResponse = await response.json();
-      throw new Error(error.message || `HTTP error! status: ${response.status}`);
+      throw new Error((data as ErrorResponse).message);
     }
 
-    return response.json();
+    return data as T;
   }
 
   async getServerInfo(): Promise<ServerInfo> {
-    return this.request<ServerInfo>('/server');
+    const response = await this.request('/server');
+    return response as ServerInfo;
+  }
+
+  async getServerStatus(): Promise<ServerStatus> {
+    const response = await this.request('/server/status');
+    return response as ServerStatus;
   }
 
   // Add more methods as needed for other endpoints

@@ -15,6 +15,29 @@ export interface ServerInfo {
   };
 }
 
+export interface ServerStatus {
+  health: {
+    status: 'healthy' | 'unhealthy';
+    lastCheck: string;
+  };
+  resources: {
+    cpu: {
+      usage: number;
+      cores: number;
+    };
+    memory: {
+      used: number;
+      total: number;
+      percentage: number;
+    };
+    disk: {
+      used: number;
+      total: number;
+      percentage: number;
+    };
+  };
+}
+
 export interface ErrorResponse {
   error: string;
   status: number;
