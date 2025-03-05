@@ -71,35 +71,45 @@ COOLIFY_BASE_URL=https://your.coolify.instance
 ### Server Management
 
 #### list_servers
+
 Lists all Coolify servers in your instance.
+
 ```typescript
 // Returns: ServerInfo[]
-await client.list_servers()
+await client.list_servers();
 ```
 
 #### get_server
+
 Get detailed information about a specific server.
+
 ```typescript
 // Returns: ServerInfo
 await client.get_server(uuid: string)
 ```
 
 #### get_server_resources
+
 Get current resources (applications, databases, etc.) running on a server.
+
 ```typescript
 // Returns: ServerResources[]
 await client.get_server_resources(uuid: string)
 ```
 
 #### get_server_domains
+
 Get domains associated with a server.
+
 ```typescript
 // Returns: ServerDomain[]
 await client.get_server_domains(uuid: string)
 ```
 
 #### validate_server
+
 Validate the connection to a specific server.
+
 ```typescript
 // Returns: ValidationResponse
 await client.validate_server(uuid: string)
@@ -108,21 +118,27 @@ await client.validate_server(uuid: string)
 ### Project Management
 
 #### list_projects
+
 List all projects in your Coolify instance.
+
 ```typescript
 // Returns: Project[]
-await client.list_projects()
+await client.list_projects();
 ```
 
 #### get_project
+
 Get detailed information about a specific project.
+
 ```typescript
 // Returns: Project
 await client.get_project(uuid: string)
 ```
 
 #### create_project
+
 Create a new project.
+
 ```typescript
 // Returns: { uuid: string }
 await client.create_project({
@@ -132,7 +148,9 @@ await client.create_project({
 ```
 
 #### update_project
+
 Update an existing project's details.
+
 ```typescript
 // Returns: Project
 await client.update_project(uuid: string, {
@@ -142,7 +160,9 @@ await client.update_project(uuid: string, {
 ```
 
 #### delete_project
+
 Delete a project.
+
 ```typescript
 // Returns: { message: string }
 await client.delete_project(uuid: string)
@@ -151,21 +171,27 @@ await client.delete_project(uuid: string)
 ### Environment Management
 
 #### list_environments
+
 List all environments or environments for a specific project.
+
 ```typescript
 // Returns: Environment[]
 await client.list_environments(project_uuid?: string)
 ```
 
 #### get_environment
+
 Get detailed information about a specific environment.
+
 ```typescript
 // Returns: Environment
 await client.get_environment(uuid: string)
 ```
 
 #### get_project_environment
+
 Get a specific environment within a project.
+
 ```typescript
 // Returns: Environment
 await client.get_project_environment(
@@ -175,7 +201,9 @@ await client.get_project_environment(
 ```
 
 #### create_environment
+
 Create a new environment.
+
 ```typescript
 // Returns: { uuid: string }
 await client.create_environment({
@@ -186,7 +214,9 @@ await client.create_environment({
 ```
 
 #### update_environment_variables
+
 Update variables for a specific environment.
+
 ```typescript
 // Returns: Environment
 await client.update_environment_variables(
@@ -196,7 +226,9 @@ await client.update_environment_variables(
 ```
 
 #### delete_environment
+
 Delete an environment.
+
 ```typescript
 // Returns: { message: string }
 await client.delete_environment(uuid: string)
@@ -205,6 +237,7 @@ await client.delete_environment(uuid: string)
 ## Type Definitions
 
 ### ServerInfo
+
 ```typescript
 interface ServerInfo {
   uuid: string;
@@ -220,6 +253,7 @@ interface ServerInfo {
 ```
 
 ### Environment
+
 ```typescript
 interface Environment {
   id: number;
@@ -233,6 +267,7 @@ interface Environment {
 ```
 
 ### Project
+
 ```typescript
 interface Project {
   id: number;
@@ -293,6 +328,7 @@ src/
 ### Key Components
 
 1. **CoolifyClient**: Handles communication with the Coolify API
+
    - Authentication
    - API request handling
    - Error management
