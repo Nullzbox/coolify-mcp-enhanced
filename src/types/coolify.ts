@@ -4,7 +4,7 @@ export interface CoolifyConfig {
 }
 
 export interface ServerInfo {
-  id: string;
+  uuid: string;
   name: string;
   status: 'running' | 'stopped' | 'error';
   version: string;
@@ -15,31 +15,29 @@ export interface ServerInfo {
   };
 }
 
-export interface ServerStatus {
-  health: {
-    status: 'healthy' | 'unhealthy';
-    lastCheck: string;
-  };
-  resources: {
-    cpu: {
-      usage: number;
-      cores: number;
-    };
-    memory: {
-      used: number;
-      total: number;
-      percentage: number;
-    };
-    disk: {
-      used: number;
-      total: number;
-      percentage: number;
-    };
-  };
+export interface ResourceStatus {
+  id: number;
+  uuid: string;
+  name: string;
+  type: string;
+  created_at: string;
+  updated_at: string;
+  status: string;
 }
+
+export type ServerResources = ResourceStatus[];
 
 export interface ErrorResponse {
   error: string;
   status: number;
+  message: string;
+}
+
+export interface ServerDomain {
+  ip: string;
+  domains: string[];
+}
+
+export interface ValidationResponse {
   message: string;
 }

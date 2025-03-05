@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { CoolifyMcpServer } from './lib/mcp-server.js';
 import { CoolifyConfig } from './types/coolify.js';

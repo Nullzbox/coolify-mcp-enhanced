@@ -1,5 +1,5 @@
 import { CoolifyClient } from '../lib/coolify-client.js';
-import type { ServerInfo, ServerStatus } from '../types/coolify.js';
+import type { ServerInfo, ServerResources } from '../types/coolify.js';
 
 // Mock fetch globally
 const mockFetch = jest.fn();
@@ -7,40 +7,52 @@ global.fetch = mockFetch;
 
 describe('CoolifyClient', () => {
   let client: CoolifyClient;
-  const mockConfig = {
-    baseUrl: 'http://test.coolify.io',
-    accessToken: 'test-token',
-  };
 
   beforeEach(() => {
-    client = new CoolifyClient(mockConfig);
+    client = new CoolifyClient({
+      baseUrl: 'http://test.coolify.io',
+      accessToken: 'test-token',
+    });
     mockFetch.mockClear();
   });
 
-  describe('getServerInfo', () => {
-    const mockServerInfo: ServerInfo = {
-      id: 'test-id',
-      name: 'test-server',
-      status: 'running',
-      version: '1.0.0',
-      resources: {
-        cpu: 2,
-        memory: 4096,
-        disk: 50,
+  describe('listServers', () => {
+    const mockServers: ServerInfo[] = [
+      {
+        uuid: 'test-id-1',
+        name: 'test-server-1',
+        status: 'running',
+        version: '1.0.0',
+        resources: {
+          cpu: 50,
+          memory: 60,
+          disk: 70,
+        },
       },
-    };
+      {
+        uuid: 'test-id-2',
+        name: 'test-server-2',
+        status: 'stopped',
+        version: '1.0.0',
+        resources: {
+          cpu: 0,
+          memory: 0,
+          disk: 70,
+        },
+      },
+    ];
 
-    it('should fetch server info successfully', async () => {
+    it('should fetch server list successfully', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: async () => mockServerInfo,
+        json: async () => mockServers,
       });
 
-      const result = await client.getServerInfo();
+      const result = await client.listServers();
 
-      expect(result).toEqual(mockServerInfo);
+      expect(result).toEqual(mockServers);
       expect(mockFetch).toHaveBeenCalledWith(
-        'http://test.coolify.io/api/v1/server',
+        'http://test.coolify.io/api/v1/servers',
         expect.objectContaining({
           headers: expect.objectContaining({
             Authorization: 'Bearer test-token',
@@ -62,45 +74,83 @@ describe('CoolifyClient', () => {
         json: async () => errorResponse,
       });
 
-      await expect(client.getServerInfo()).rejects.toThrow('Invalid token');
+      await expect(client.listServers()).rejects.toThrow('Invalid token');
     });
   });
 
-  describe('getServerStatus', () => {
-    const mockServerStatus: ServerStatus = {
-      health: {
-        status: 'healthy',
-        lastCheck: '2024-03-19T12:00:00Z',
-      },
+  describe('getServer', () => {
+    const mockServerInfo: ServerInfo = {
+      uuid: 'test-id',
+      name: 'test-server',
+      status: 'running',
+      version: '1.0.0',
       resources: {
-        cpu: {
-          usage: 45.5,
-          cores: 4,
-        },
-        memory: {
-          used: 8192,
-          total: 16384,
-          percentage: 50,
-        },
-        disk: {
-          used: 100,
-          total: 500,
-          percentage: 20,
-        },
+        cpu: 50,
+        memory: 60,
+        disk: 70,
       },
     };
 
-    it('should fetch server status successfully', async () => {
+    it('should fetch server info successfully', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: async () => mockServerStatus,
+        json: async () => mockServerInfo,
       });
 
-      const result = await client.getServerStatus();
+      const result = await client.getServer('test-id');
 
-      expect(result).toEqual(mockServerStatus);
+      expect(result).toEqual(mockServerInfo);
       expect(mockFetch).toHaveBeenCalledWith(
-        'http://test.coolify.io/api/v1/server/status',
+        'http://test.coolify.io/api/v1/servers/test-id',
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            Authorization: 'Bearer test-token',
+            'Content-Type': 'application/json',
+          }),
+        }),
+      );
+    });
+
+    it('should handle error responses', async () => {
+      const errorResponse = {
+        error: 'Not Found',
+        status: 404,
+        message: 'Server not found',
+      };
+
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        json: async () => errorResponse,
+      });
+
+      await expect(client.getServer('invalid-id')).rejects.toThrow('Server not found');
+    });
+  });
+
+  describe('getServerResources', () => {
+    const mockServerResources: ServerResources = [
+      {
+        id: 1,
+        uuid: 'test-id',
+        name: 'test-app',
+        type: 'application',
+        created_at: '2024-03-19T12:00:00Z',
+        updated_at: '2024-03-19T12:00:00Z',
+        status: 'running:healthy',
+      },
+    ];
+
+    it('should fetch server resources successfully', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockServerResources,
+      });
+
+      const result = await client.getServerResources('test-id');
+
+      expect(result).toEqual(mockServerResources);
+      expect(mockFetch).toHaveBeenCalledWith(
+        'http://test.coolify.io/api/v1/servers/test-id/resources',
         expect.objectContaining({
           headers: expect.objectContaining({
             Authorization: 'Bearer test-token',
@@ -122,7 +172,67 @@ describe('CoolifyClient', () => {
         json: async () => errorResponse,
       });
 
-      await expect(client.getServerStatus()).rejects.toThrow('Internal server error');
+      await expect(client.getServerResources('test-id')).rejects.toThrow('Internal server error');
     });
+  });
+
+  test('getServer returns server info', async () => {
+    const mockResponse = {
+      uuid: 'test-uuid',
+      name: 'test-server',
+      description: 'Test server',
+      ip: '127.0.0.1',
+      port: 22,
+      is_reachable: true,
+      is_usable: true,
+    };
+
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve(mockResponse),
+    });
+
+    const server = await client.getServer('test-uuid');
+    expect(server).toEqual(mockResponse);
+    expect(global.fetch).toHaveBeenCalledWith(
+      'http://test.coolify.io/api/v1/servers/test-uuid',
+      expect.objectContaining({
+        headers: {
+          Authorization: 'Bearer test-token',
+          'Content-Type': 'application/json',
+        },
+      }),
+    );
+  });
+
+  test('getServerResources returns server resources', async () => {
+    const mockResponse = [
+      {
+        id: 1,
+        uuid: 'test-uuid',
+        name: 'test-app',
+        type: 'application',
+        created_at: '2025-03-05T13:41:12.000Z',
+        updated_at: '2025-03-05T13:41:12.000Z',
+        status: 'running:healthy',
+      },
+    ];
+
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve(mockResponse),
+    });
+
+    const resources = await client.getServerResources('test-uuid');
+    expect(resources).toEqual(mockResponse);
+    expect(global.fetch).toHaveBeenCalledWith(
+      'http://test.coolify.io/api/v1/servers/test-uuid/resources',
+      expect.objectContaining({
+        headers: {
+          Authorization: 'Bearer test-token',
+          'Content-Type': 'application/json',
+        },
+      }),
+    );
   });
 });

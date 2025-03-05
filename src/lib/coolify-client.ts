@@ -1,39 +1,72 @@
-import { CoolifyConfig, ErrorResponse, ServerInfo, ServerStatus } from '../types/coolify.js';
+import { CoolifyConfig, ErrorResponse, ServerInfo, ServerResources, ServerDomain, ValidationResponse } from '../types/coolify.js';
 
 export class CoolifyClient {
   private baseUrl: string;
   private accessToken: string;
 
   constructor(config: CoolifyConfig) {
+    if (!config.baseUrl) {
+      throw new Error('Coolify base URL is required');
+    }
+    if (!config.accessToken) {
+      throw new Error('Coolify access token is required');
+    }
     this.baseUrl = config.baseUrl.replace(/\/$/, '');
     this.accessToken = config.accessToken;
   }
 
   private async request<T>(path: string): Promise<T> {
-    const response = await fetch(`${this.baseUrl}/api/v1${path}`, {
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${this.accessToken}`,
-      },
-    });
+    try {
+      const url = `${this.baseUrl}/api/v1${path}`;
+      const response = await fetch(url, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${this.accessToken}`,
+        },
+      });
 
-    const data = await response.json();
+      const data = await response.json();
 
-    if (!response.ok) {
-      throw new Error((data as ErrorResponse).message);
+      if (!response.ok) {
+        const error = data as ErrorResponse;
+        throw new Error(error.message || `HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      return data as T;
+    } catch (error) {
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new Error(`Failed to connect to Coolify server at ${this.baseUrl}. Please check if the server is running and the URL is correct.`);
+      }
+      throw error;
     }
-
-    return data as T;
   }
 
-  async getServerInfo(): Promise<ServerInfo> {
-    const response = await this.request('/server');
-    return response as ServerInfo;
+  async listServers(): Promise<ServerInfo[]> {
+    return this.request<ServerInfo[]>('/servers');
   }
 
-  async getServerStatus(): Promise<ServerStatus> {
-    const response = await this.request('/server/status');
-    return response as ServerStatus;
+  async getServer(uuid: string): Promise<ServerInfo> {
+    return this.request<ServerInfo>(`/servers/${uuid}`);
+  }
+
+  async getServerResources(uuid: string): Promise<ServerResources> {
+    return this.request<ServerResources>(`/servers/${uuid}/resources`);
+  }
+
+  async getServerDomains(uuid: string): Promise<ServerDomain[]> {
+    return this.request<ServerDomain[]>(`/servers/${uuid}/domains`);
+  }
+
+  async validateServer(uuid: string): Promise<ValidationResponse> {
+    return this.request<ValidationResponse>(`/servers/${uuid}/validate`);
+  }
+
+  async validateConnection(): Promise<void> {
+    try {
+      await this.listServers();
+    } catch (error) {
+      throw new Error(`Failed to connect to Coolify server: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 
   // Add more methods as needed for other endpoints
