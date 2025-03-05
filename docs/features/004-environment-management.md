@@ -44,29 +44,8 @@ Environment management within projects - allows setting up different environment
 
 ## Implementation Checklist
 
-- [ ] Environment List Resource
-
-  - [ ] resources://coolify/environments/list
-  - [ ] Filter by project
-  - [ ] Include environment variables (masked)
-
-- [ ] Environment Management Tools
-
-  - [ ] createEnvironment tool
-  - [ ] updateEnvironment tool
-  - [ ] deleteEnvironment tool
-  - [ ] setEnvironmentVariables tool
-
-- [ ] Environment Detail Resource
-
-  - [ ] resources://coolify/environments/{id}
-  - [ ] Environment configuration view
-  - [ ] Resource usage stats
-
-- [ ] Testing
-  - [ ] Environment CRUD tests
-  - [ ] Variable management tests
-  - [ ] Security tests for sensitive data
+- [x] Environment List Resource
+- [x] Environment Management Tools
 
 ## Dependencies
 

@@ -16,7 +16,8 @@ alwaysApply: true
 - Create feature branch with descriptive name (feature/feature-name)
 - Locate and review feature documentation in docs/features directory
 - Follow documentation requirements systematically
-- Commit frequently to trigger pre-commit hooks (linting, formatting, tests)
+- IMPORTANT Commit frequently to trigger pre-commit hooks (linting, formatting, tests)
+- Push to remote remotr
 - Add comprehensive tests for new functionality
 - Push completed work to remote for PR review
 
