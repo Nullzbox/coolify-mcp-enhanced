@@ -69,13 +69,3 @@ export interface UpdateProjectRequest {
   name?: string;
   description?: string;
 }
-
-export interface CreateEnvironmentRequest {
-  name: string;
-  project_uuid: string;
-  variables?: Record<string, string>;
-}
-
-export interface UpdateEnvironmentVariablesRequest {
-  variables: Record<string, string>;
-}
