@@ -1,7 +1,6 @@
 ---
 description: FOLLOW feature development workflow WHEN implementing new features TO ensure consistent, tested, and documented changes
 globs: src/**/*.{ts,tsx}
-alwaysApply: true
 ---
 
 # Feature Development Workflow
@@ -15,41 +14,71 @@ alwaysApply: true
 - Start from up-to-date main branch
 - Create feature branch with descriptive name (feature/feature-name)
 - Locate and review feature documentation in docs/features directory
-- Follow documentation requirements systematically
-- Commit frequently to trigger pre-commit hooks (linting, formatting, tests)
-- Add comprehensive tests for new functionality
-- Push completed work to remote for PR review
+- Follow implementation in small, focused chunks:
+  1. Add types and interfaces first
+  2. Add client methods next
+  3. Add MCP server tools
+  4. Add tests for each component
+  5. Update documentation for completed items
+- Commit after EACH of these changes:
+  - New types/interfaces
+  - New client methods
+  - New MCP tools
+  - New tests
+  - Documentation updates
+  - Linting/formatting fixes
+- Push to remote after each significant commit to:
+  - Back up your work
+  - Enable early feedback
+  - Make PRs easier to review
+- Use conventional commit messages:
+  - feat: new feature
+  - fix: bug fix
+  - docs: documentation changes
+  - test: adding tests
+  - refactor: code changes that neither fix bugs nor add features
+  - style: formatting, missing semi colons, etc
+  - chore: updating build tasks, package manager configs, etc
 
 ## Examples
 <example>
 # Good workflow
 1. git checkout main && git pull
-2. git checkout -b feature/server-info
-3. Review docs/features/002-server-info-resource.md
-4. Implement ServerInfo interface
-5. Add getServerInfo method with tests
-6. Commit to run hooks: "feat: add server info interface"
-7. Implement ServerStatus interface
-8. Add getServerStatus method with tests
-9. Commit to run hooks: "feat: add server status resource"
-10. Fix any linting issues
-11. Push to remote when complete
+2. git checkout -b feature/project-management
+3. Review docs/features/003-project-management.md
+4. Add Project and Environment types
+5. Commit: "feat: add Project and Environment types"
+6. Push: git push -u origin feature/project-management
+7. Add client methods for projects
+8. Commit: "feat: add project-related methods to CoolifyClient"
+9. Push: git push
+10. Add MCP server tools
+11. Commit: "feat: add project management tools to MCP server"
+12. Push: git push
+13. Add tests
+14. Commit: "test: add project management tests"
+15. Push: git push
+16. Update feature doc for completed items
+17. Commit: "docs: update feature doc for project management"
+18. Push: git push
 </example>
 
 <example type="invalid">
 # Poor workflow
-1. Start coding without checking docs
-2. Make all changes in one big commit
-3. Skip tests or add them later
+1. Make all changes at once (types, client, server, tests)
+2. Single large commit with all changes
+3. No documentation updates until the end
 4. Push directly to main
-5. Fix linting issues after PR
+5. No intermediate pushes to remote
+6. Vague commit messages like "project management work"
 </example>
 
 ## Critical Points
 <critical>
-- ALWAYS work from feature documentation
-- 
-- NEVER skip tests for new functionality
-- Commit OFTEN to utilize pre-commit hooks
-- Keep commits focused and well-described
+- NEVER make large, multi-component changes in a single commit
+- ALWAYS commit after each logical component change
+- ALWAYS push to remote after significant commits
+- ALWAYS update documentation AS YOU GO
+- ALWAYS use conventional commit messages
+- NEVER wait until the end to write tests
 </critical> 
