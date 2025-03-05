@@ -1,4 +1,17 @@
-import { CoolifyConfig, ErrorResponse, ServerInfo, ServerResources, ServerDomain, ValidationResponse, Project, CreateProjectRequest, UpdateProjectRequest, Environment } from '../types/coolify.js';
+import {
+  CoolifyConfig,
+  ErrorResponse,
+  ServerInfo,
+  ServerResources,
+  ServerDomain,
+  ValidationResponse,
+  Project,
+  CreateProjectRequest,
+  UpdateProjectRequest,
+  Environment,
+  CreateEnvironmentRequest,
+  UpdateEnvironmentVariablesRequest,
+} from '../types/coolify.js';
 
 export class CoolifyClient {
   private baseUrl: string;
@@ -36,7 +49,9 @@ export class CoolifyClient {
       return data as T;
     } catch (error) {
       if (error instanceof TypeError && error.message.includes('fetch')) {
-        throw new Error(`Failed to connect to Coolify server at ${this.baseUrl}. Please check if the server is running and the URL is correct.`);
+        throw new Error(
+          `Failed to connect to Coolify server at ${this.baseUrl}. Please check if the server is running and the URL is correct.`,
+        );
       }
       throw error;
     }
@@ -66,7 +81,9 @@ export class CoolifyClient {
     try {
       await this.listServers();
     } catch (error) {
-      throw new Error(`Failed to connect to Coolify server: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Failed to connect to Coolify server: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
     }
   }
 
@@ -98,8 +115,43 @@ export class CoolifyClient {
     });
   }
 
-  async getProjectEnvironment(projectUuid: string, environmentNameOrUuid: string): Promise<Environment> {
+  async getProjectEnvironment(
+    projectUuid: string,
+    environmentNameOrUuid: string,
+  ): Promise<Environment> {
     return this.request<Environment>(`/projects/${projectUuid}/${environmentNameOrUuid}`);
+  }
+
+  async listEnvironments(projectUuid?: string): Promise<Environment[]> {
+    const path = projectUuid ? `/environments?project_uuid=${projectUuid}` : '/environments';
+    return this.request<Environment[]>(path);
+  }
+
+  async getEnvironment(uuid: string): Promise<Environment> {
+    return this.request<Environment>(`/environments/${uuid}`);
+  }
+
+  async createEnvironment(environment: CreateEnvironmentRequest): Promise<{ uuid: string }> {
+    return this.request<{ uuid: string }>('/environments', {
+      method: 'POST',
+      body: JSON.stringify(environment),
+    });
+  }
+
+  async deleteEnvironment(uuid: string): Promise<{ message: string }> {
+    return this.request<{ message: string }>(`/environments/${uuid}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async updateEnvironmentVariables(
+    uuid: string,
+    variables: UpdateEnvironmentVariablesRequest,
+  ): Promise<Environment> {
+    return this.request<Environment>(`/environments/${uuid}/variables`, {
+      method: 'PUT',
+      body: JSON.stringify(variables),
+    });
   }
 
   // Add more methods as needed for other endpoints

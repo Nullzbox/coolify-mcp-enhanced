@@ -1,5 +1,11 @@
 import { CoolifyClient } from '../lib/coolify-client.js';
-import type { ServerInfo, ServerResources, Environment, CreateEnvironmentRequest, UpdateEnvironmentVariablesRequest } from '../types/coolify.js';
+import type {
+  ServerInfo,
+  ServerResources,
+  Environment,
+  CreateEnvironmentRequest,
+  UpdateEnvironmentVariablesRequest,
+} from '../types/coolify.js';
 
 // Mock fetch globally
 const mockFetch = jest.fn();
@@ -259,7 +265,7 @@ describe('CoolifyClient', () => {
       it('should fetch all environments successfully', async () => {
         mockFetch.mockResolvedValueOnce({
           ok: true,
-          json: () => Promise.resolve([mockEnvironment])
+          json: () => Promise.resolve([mockEnvironment]),
         });
 
         const result = await client.listEnvironments();
@@ -279,7 +285,7 @@ describe('CoolifyClient', () => {
       it('should fetch environments by project UUID', async () => {
         mockFetch.mockResolvedValueOnce({
           ok: true,
-          json: () => Promise.resolve([mockEnvironment])
+          json: () => Promise.resolve([mockEnvironment]),
         });
 
         const result = await client.listEnvironments('project-test-id');
@@ -301,7 +307,7 @@ describe('CoolifyClient', () => {
       it('should fetch environment by UUID successfully', async () => {
         mockFetch.mockResolvedValueOnce({
           ok: true,
-          json: () => Promise.resolve(mockEnvironment)
+          json: () => Promise.resolve(mockEnvironment),
         });
 
         const result = await client.getEnvironment('env-test-id');
@@ -331,7 +337,7 @@ describe('CoolifyClient', () => {
 
         mockFetch.mockResolvedValueOnce({
           ok: true,
-          json: () => Promise.resolve(mockResponse)
+          json: () => Promise.resolve(mockResponse),
         });
 
         const result = await client.createEnvironment(createRequest);
@@ -364,7 +370,7 @@ describe('CoolifyClient', () => {
 
         mockFetch.mockResolvedValueOnce({
           ok: true,
-          json: () => Promise.resolve(mockUpdatedEnvironment)
+          json: () => Promise.resolve(mockUpdatedEnvironment),
         });
 
         const result = await client.updateEnvironmentVariables('env-test-id', updateRequest);
@@ -390,7 +396,7 @@ describe('CoolifyClient', () => {
 
         mockFetch.mockResolvedValueOnce({
           ok: true,
-          json: () => Promise.resolve(mockResponse)
+          json: () => Promise.resolve(mockResponse),
         });
 
         const result = await client.deleteEnvironment('env-test-id');

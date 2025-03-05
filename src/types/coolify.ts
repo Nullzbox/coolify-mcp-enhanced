@@ -46,7 +46,10 @@ export interface Environment {
   id: number;
   uuid: string;
   name: string;
-  // Additional environment properties will be added as needed
+  project_uuid: string;
+  variables?: Record<string, string>;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface Project {
@@ -65,4 +68,14 @@ export interface CreateProjectRequest {
 export interface UpdateProjectRequest {
   name?: string;
   description?: string;
+}
+
+export interface CreateEnvironmentRequest {
+  name: string;
+  project_uuid: string;
+  variables?: Record<string, string>;
+}
+
+export interface UpdateEnvironmentVariablesRequest {
+  variables: Record<string, string>;
 }

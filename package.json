@@ -1,5 +1,6 @@
 {
   "name": "@stumason/coolify-mcp",
+  "scope": "@stumason",
   "version": "0.1.0",
   "description": "MCP server implementation for Coolify",
   "main": "dist/index.js",
