@@ -3,8 +3,6 @@ import type {
   ServerInfo,
   ServerResources,
   Environment,
-  CreateEnvironmentRequest,
-  UpdateEnvironmentVariablesRequest,
 } from '../types/coolify.js';
 
 // Mock fetch globally
@@ -260,7 +258,7 @@ describe('CoolifyClient', () => {
       mockFetch.mockClear();
     });
 
-    describe('get_project_environment', () => {
+    describe('getProjectEnvironment', () => {
       it('should fetch environment by project UUID and name/UUID successfully', async () => {
         mockFetch.mockResolvedValueOnce({
           ok: true,
@@ -296,102 +294,6 @@ describe('CoolifyClient', () => {
         await expect(
           client.getProjectEnvironment('invalid-project', 'invalid-env')
         ).rejects.toThrow('Environment not found');
-      });
-    });
-
-    describe('listEnvironments', () => {
-      it('should handle not found error', async () => {
-        const errorResponse = {
-          error: 'Not Found',
-          status: 404,
-          message: 'Environments not found',
-        };
-
-        mockFetch.mockResolvedValueOnce({
-          ok: false,
-          json: () => Promise.resolve(errorResponse),
-        });
-
-        await expect(client.listEnvironments()).rejects.toThrow('Environments not found');
-      });
-    });
-
-    describe('getEnvironment', () => {
-      it('should handle not found error', async () => {
-        const errorResponse = {
-          error: 'Not Found',
-          status: 404,
-          message: 'Environment not found',
-        };
-
-        mockFetch.mockResolvedValueOnce({
-          ok: false,
-          json: () => Promise.resolve(errorResponse),
-        });
-
-        await expect(client.getEnvironment('invalid-uuid')).rejects.toThrow('Environment not found');
-      });
-    });
-
-    describe('createEnvironment', () => {
-      it('should handle not found error', async () => {
-        const createRequest: CreateEnvironmentRequest = {
-          name: 'test-env',
-          project_uuid: 'project-test-id',
-        };
-
-        const errorResponse = {
-          error: 'Not Found',
-          status: 404,
-          message: 'Cannot create environment',
-        };
-
-        mockFetch.mockResolvedValueOnce({
-          ok: false,
-          json: () => Promise.resolve(errorResponse),
-        });
-
-        await expect(client.createEnvironment(createRequest)).rejects.toThrow('Cannot create environment');
-      });
-    });
-
-    describe('updateEnvironmentVariables', () => {
-      it('should handle not found error', async () => {
-        const updateRequest: UpdateEnvironmentVariablesRequest = {
-          variables: { NEW_KEY: 'new-value' },
-        };
-
-        const errorResponse = {
-          error: 'Not Found',
-          status: 404,
-          message: 'Environment not found',
-        };
-
-        mockFetch.mockResolvedValueOnce({
-          ok: false,
-          json: () => Promise.resolve(errorResponse),
-        });
-
-        await expect(
-          client.updateEnvironmentVariables('invalid-uuid', updateRequest)
-        ).rejects.toThrow('Environment not found');
-      });
-    });
-
-    describe('deleteEnvironment', () => {
-      it('should handle not found error', async () => {
-        const errorResponse = {
-          error: 'Not Found',
-          status: 404,
-          message: 'Environment not found',
-        };
-
-        mockFetch.mockResolvedValueOnce({
-          ok: false,
-          json: () => Promise.resolve(errorResponse),
-        });
-
-        await expect(client.deleteEnvironment('invalid-uuid')).rejects.toThrow('Environment not found');
       });
     });
   });

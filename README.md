@@ -170,13 +170,13 @@ await client.delete_project(uuid: string)
 
 ### Environment Management
 
-#### get_project_environment
+#### getProjectEnvironment
 
-Get a specific environment within a project. This is the recommended method for retrieving environment information.
+Get an environment within a project. This is the only supported method for environment operations.
 
 ```typescript
 // Returns: Environment
-await client.getEnvironment(
+await client.getProjectEnvironment(
   project_uuid: string,
   environment_name_or_uuid: string
 )
@@ -185,22 +185,12 @@ await client.getEnvironment(
 Example:
 ```typescript
 const environment = await client.getProjectEnvironment(
-  'ikokwc8sk00wk8sg8gkwoscw',
-  'production'
+  'ikokwc8sk00wk8sg8gkwoscw',  // Project UUID
+  'production'                  // Environment name or UUID
 );
 ```
 
-#### Other Environment Methods
-
-The following methods are currently not supported by the API and will return "Not found" errors:
-
-- `listEnvironments`
-- `getEnvironment`
-- `createEnvironment`
-- `updateEnvironmentVariables`
-- `deleteEnvironment`
-
-We recommend using `getProjectEnvironment` for all environment-related operations until the API support for these methods is implemented.
+Note: Environment operations are only available through the project endpoints. There are no standalone environment endpoints.
 
 ## Type Definitions
 

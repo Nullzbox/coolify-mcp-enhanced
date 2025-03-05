@@ -9,8 +9,6 @@ import {
   CreateProjectRequest,
   UpdateProjectRequest,
   Environment,
-  CreateEnvironmentRequest,
-  UpdateEnvironmentVariablesRequest,
 } from '../types/coolify.js';
 
 export class CoolifyClient {
@@ -120,58 +118,6 @@ export class CoolifyClient {
     environmentNameOrUuid: string,
   ): Promise<Environment> {
     return this.request<Environment>(`/projects/${projectUuid}/${environmentNameOrUuid}`);
-  }
-
-  async listEnvironments(projectUuid?: string): Promise<Environment[]> {
-    try {
-      const path = projectUuid ? `/environments?project_uuid=${projectUuid}` : '/environments';
-      return this.request<Environment[]>(path);
-    } catch (error) {
-      throw new Error('Environments not found');
-    }
-  }
-
-  async getEnvironment(uuid: string): Promise<Environment> {
-    try {
-      return this.request<Environment>(`/environments/${uuid}`);
-    } catch (error) {
-      throw new Error('Environment not found');
-    }
-  }
-
-  async createEnvironment(environment: CreateEnvironmentRequest): Promise<{ uuid: string }> {
-    try {
-      return this.request<{ uuid: string }>('/environments', {
-        method: 'POST',
-        body: JSON.stringify(environment),
-      });
-    } catch (error) {
-      throw new Error('Cannot create environment');
-    }
-  }
-
-  async deleteEnvironment(uuid: string): Promise<{ message: string }> {
-    try {
-      return this.request<{ message: string }>(`/environments/${uuid}`, {
-        method: 'DELETE',
-      });
-    } catch (error) {
-      throw new Error('Environment not found');
-    }
-  }
-
-  async updateEnvironmentVariables(
-    uuid: string,
-    variables: UpdateEnvironmentVariablesRequest,
-  ): Promise<Environment> {
-    try {
-      return this.request<Environment>(`/environments/${uuid}/variables`, {
-        method: 'PUT',
-        body: JSON.stringify(variables),
-      });
-    } catch (error) {
-      throw new Error('Environment not found');
-    }
   }
 
   // Add more methods as needed for other endpoints

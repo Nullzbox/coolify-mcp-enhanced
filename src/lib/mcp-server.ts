@@ -11,7 +11,6 @@ import {
   CreateProjectRequest,
   UpdateProjectRequest,
   Environment,
-  CreateEnvironmentRequest,
 } from '../types/coolify.js';
 import { z } from 'zod';
 
@@ -265,138 +264,12 @@ export class CoolifyMcpServer {
       },
     );
 
-    this.server.tool(
-      'list_environments',
-      'List all environments or environments for a specific project',
-      {
-        project_uuid: z
-          .string()
-          .optional()
-          .describe('Optional UUID of the project to list environments for'),
-      },
-      async (params) => {
-        try {
-          const environments = await this.client.listEnvironments(params.project_uuid);
-          return {
-            content: [{ type: 'text', text: JSON.stringify(environments) }],
-            isError: false,
-          };
-        } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-          return {
-            content: [{ type: 'text', text: errorMessage }],
-            isError: true,
-          };
-        }
-      },
-    );
-
-    this.server.tool(
-      'get_environment',
-      'Get details about a specific environment',
-      {
-        uuid: z.string().describe('UUID of the environment to get details for'),
-      },
-      async (params) => {
-        try {
-          const environment = await this.client.getEnvironment(params.uuid);
-          return {
-            content: [{ type: 'text', text: JSON.stringify(environment) }],
-            isError: false,
-          };
-        } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-          return {
-            content: [{ type: 'text', text: errorMessage }],
-            isError: true,
-          };
-        }
-      },
-    );
-
-    this.server.tool(
-      'create_environment',
-      'Create a new environment',
-      {
-        name: z.string().describe('Name of the environment'),
-        project_uuid: z.string().describe('UUID of the project to create the environment in'),
-        variables: z.record(z.string()).optional().describe('Optional environment variables'),
-      },
-      async (params) => {
-        try {
-          const result = await this.client.createEnvironment(params);
-          return {
-            content: [{ type: 'text', text: JSON.stringify(result) }],
-            isError: false,
-          };
-        } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-          return {
-            content: [{ type: 'text', text: errorMessage }],
-            isError: true,
-          };
-        }
-      },
-    );
-
-    this.server.tool(
-      'update_environment_variables',
-      'Update variables for a specific environment',
-      {
-        uuid: z.string().describe('UUID of the environment to update'),
-        variables: z.record(z.string()).describe('New environment variables'),
-      },
-      async (params) => {
-        try {
-          const result = await this.client.updateEnvironmentVariables(params.uuid, {
-            variables: params.variables,
-          });
-          return {
-            content: [{ type: 'text', text: JSON.stringify(result) }],
-            isError: false,
-          };
-        } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-          return {
-            content: [{ type: 'text', text: errorMessage }],
-            isError: true,
-          };
-        }
-      },
-    );
-
-    this.server.tool(
-      'delete_environment',
-      'Delete an environment',
-      {
-        uuid: z.string().describe('UUID of the environment to delete'),
-      },
-      async (params) => {
-        try {
-          const result = await this.client.deleteEnvironment(params.uuid);
-          return {
-            content: [{ type: 'text', text: JSON.stringify(result) }],
-            isError: false,
-          };
-        } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-          return {
-            content: [{ type: 'text', text: errorMessage }],
-            isError: true,
-          };
-        }
-      },
-    );
+    // End of tool definitions
   }
 
   async start(transport: Transport): Promise<void> {
-    try {
-      await this.client.validateConnection();
-      await this.server.connect(transport);
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      throw new Error(`Failed to start MCP server: ${errorMessage}`);
-    }
+    await this.client.validateConnection();
+    await this.server.connect(transport);
   }
 
   async list_servers(): Promise<ServerInfo[]> {
@@ -444,28 +317,5 @@ export class CoolifyMcpServer {
     environmentNameOrUuid: string,
   ): Promise<Environment> {
     return this.client.getProjectEnvironment(projectUuid, environmentNameOrUuid);
-  }
-
-  async list_environments(params: { project_uuid?: string }): Promise<Environment[]> {
-    return this.client.listEnvironments(params.project_uuid);
-  }
-
-  async get_environment(params: { uuid: string }): Promise<Environment> {
-    return this.client.getEnvironment(params.uuid);
-  }
-
-  async create_environment(params: CreateEnvironmentRequest): Promise<{ uuid: string }> {
-    return this.client.createEnvironment(params);
-  }
-
-  async update_environment_variables(params: {
-    uuid: string;
-    variables: Record<string, string>;
-  }): Promise<Environment> {
-    return this.client.updateEnvironmentVariables(params.uuid, { variables: params.variables });
-  }
-
-  async delete_environment(params: { uuid: string }): Promise<{ message: string }> {
-    return this.client.deleteEnvironment(params.uuid);
   }
 }

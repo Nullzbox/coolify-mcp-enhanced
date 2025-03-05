@@ -5,8 +5,6 @@ import type {
   ValidationResponse,
   Project,
   Environment,
-  CreateEnvironmentRequest,
-  UpdateEnvironmentVariablesRequest,
 } from '../types/coolify.js';
 
 describe('CoolifyMcpServer', () => {
@@ -145,115 +143,24 @@ describe('CoolifyMcpServer', () => {
     });
   });
 
-  describe('get_project_environment', () => {
-    it('should call client getProjectEnvironment', async () => {
-      const mockEnvironment: Environment = {
-        id: 1,
-        uuid: 'test-env-uuid',
-        name: 'test-environment',
-        project_uuid: 'test-project-uuid',
-        created_at: '2024-03-19T12:00:00Z',
-        updated_at: '2024-03-19T12:00:00Z',
-      };
-
-      const spy = jest
-        .spyOn(server['client'], 'getProjectEnvironment')
-        .mockResolvedValue(mockEnvironment);
-
-      await server.get_project_environment('test-project-uuid', 'test-env-uuid');
-      expect(spy).toHaveBeenCalledWith('test-project-uuid', 'test-env-uuid');
-    });
-  });
-
   describe('Environment Management', () => {
     const mockEnvironment: Environment = {
       id: 1,
       uuid: 'test-env-uuid',
       name: 'test-environment',
       project_uuid: 'test-project-uuid',
-      variables: { KEY: 'value' },
       created_at: '2024-03-19T12:00:00Z',
       updated_at: '2024-03-19T12:00:00Z',
     };
 
-    describe('list_environments', () => {
-      it('should call client listEnvironments without project UUID', async () => {
+    describe('get_project_environment', () => {
+      it('should call client getProjectEnvironment', async () => {
         const spy = jest
-          .spyOn(server['client'], 'listEnvironments')
-          .mockResolvedValue([mockEnvironment]);
-
-        await server.list_environments({});
-        expect(spy).toHaveBeenCalledWith(undefined);
-      });
-
-      it('should call client listEnvironments with project UUID', async () => {
-        const spy = jest
-          .spyOn(server['client'], 'listEnvironments')
-          .mockResolvedValue([mockEnvironment]);
-
-        await server.list_environments({ project_uuid: 'test-project-uuid' });
-        expect(spy).toHaveBeenCalledWith('test-project-uuid');
-      });
-    });
-
-    describe('get_environment', () => {
-      it('should call client getEnvironment', async () => {
-        const spy = jest
-          .spyOn(server['client'], 'getEnvironment')
+          .spyOn(server['client'], 'getProjectEnvironment')
           .mockResolvedValue(mockEnvironment);
 
-        await server.get_environment({ uuid: 'test-env-uuid' });
-        expect(spy).toHaveBeenCalledWith('test-env-uuid');
-      });
-    });
-
-    describe('create_environment', () => {
-      it('should call client createEnvironment', async () => {
-        const createRequest: CreateEnvironmentRequest = {
-          name: 'test-environment',
-          project_uuid: 'test-project-uuid',
-          variables: { KEY: 'value' },
-        };
-
-        const mockResponse = { uuid: 'test-env-uuid' };
-
-        const spy = jest
-          .spyOn(server['client'], 'createEnvironment')
-          .mockResolvedValue(mockResponse);
-
-        await server.create_environment(createRequest);
-        expect(spy).toHaveBeenCalledWith(createRequest);
-      });
-    });
-
-    describe('update_environment_variables', () => {
-      it('should call client updateEnvironmentVariables', async () => {
-        const updateRequest: UpdateEnvironmentVariablesRequest = {
-          variables: { NEW_KEY: 'new-value' },
-        };
-
-        const spy = jest
-          .spyOn(server['client'], 'updateEnvironmentVariables')
-          .mockResolvedValue({ ...mockEnvironment, variables: updateRequest.variables });
-
-        await server.update_environment_variables({
-          uuid: 'test-env-uuid',
-          variables: updateRequest.variables,
-        });
-        expect(spy).toHaveBeenCalledWith('test-env-uuid', updateRequest);
-      });
-    });
-
-    describe('delete_environment', () => {
-      it('should call client deleteEnvironment', async () => {
-        const mockResponse = { message: 'Environment deleted successfully' };
-
-        const spy = jest
-          .spyOn(server['client'], 'deleteEnvironment')
-          .mockResolvedValue(mockResponse);
-
-        await server.delete_environment({ uuid: 'test-env-uuid' });
-        expect(spy).toHaveBeenCalledWith('test-env-uuid');
+        await server.get_project_environment('test-project-uuid', 'test-env-uuid');
+        expect(spy).toHaveBeenCalledWith('test-project-uuid', 'test-env-uuid');
       });
     });
   });
