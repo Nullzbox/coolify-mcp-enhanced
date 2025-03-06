@@ -14,7 +14,6 @@ import {
   Application,
   CreateApplicationRequest,
   Deployment,
-  LogEntry,
 } from '../types/coolify.js';
 import { z } from 'zod';
 
@@ -394,30 +393,6 @@ export class CoolifyMcpServer {
       },
     );
 
-    this.server.tool(
-      'get_application_logs',
-      'Get logs for an application',
-      {
-        uuid: z.string().describe('UUID of the application'),
-        since: z.string().optional().describe('Optional timestamp to get logs since (ISO format)'),
-      },
-      async (params) => {
-        try {
-          const logs = await this.client.getApplicationLogs(params.uuid, params.since);
-          return {
-            content: [{ type: 'text', text: JSON.stringify(logs) }],
-            isError: false,
-          };
-        } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-          return {
-            content: [{ type: 'text', text: errorMessage }],
-            isError: true,
-          };
-        }
-      },
-    );
-
     // End of tool definitions
   }
 
@@ -490,11 +465,11 @@ export class CoolifyMcpServer {
     return { message: 'Application deleted successfully' };
   }
 
-  async deploy_application(uuid: string): Promise<Deployment> {
-    return this.client.deployApplication(uuid);
+  async deploy_application(params: { uuid: string }): Promise<Deployment> {
+    return this.client.deployApplication(params.uuid);
   }
 
-  async get_application_logs(uuid: string, since?: string): Promise<LogEntry[]> {
-    return this.client.getApplicationLogs(uuid, since);
+  private async getApplication(uuid: string): Promise<Application> {
+    return this.client.getApplication(uuid);
   }
 }

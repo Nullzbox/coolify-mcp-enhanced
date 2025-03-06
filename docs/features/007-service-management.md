@@ -2,87 +2,106 @@
 
 ## Context
 
-Service deployment and management - allows deploying predefined services (WordPress, Ghost, Plausible, etc.).
+Implementation of one-click service management features through MCP resources, allowing users to deploy and manage various pre-configured services.
 
 ## API Endpoints Used
 
-- GET `/services` (Line ~2500)
+- GET `/services` (List)
 
   - Lists all services
-  - Query params: environment_uuid (optional)
   - Response: Array of Service objects
   - Auth: Bearer token required
 
-- GET `/services/templates` (Line ~2550)
+- POST `/services` (Create)
 
-  - Lists available service templates
-  - Response: Array of ServiceTemplate objects
+  - Create a one-click service
+  - Required fields:
+    - server_uuid
+    - project_uuid
+    - environment_name/uuid
+    - type (one of many supported service types)
+  - Optional fields:
+    - name
+    - description
+    - destination_uuid
+    - instant_deploy
   - Auth: Bearer token required
 
-- POST `/services` (Line ~2600)
+- GET `/services/{uuid}` (Get)
 
-  - Create new service
-  - Request body: {
-    environment_uuid: string,
-    template_id: string,
-    name: string,
-    configuration: ServiceConfiguration
-    }
+  - Get service details
   - Response: Service object
   - Auth: Bearer token required
 
-- GET `/services/{uuid}` (Line ~2650)
-
-  - Get service details
-  - Response: Service object with status
-  - Auth: Bearer token required
-
-- DELETE `/services/{uuid}` (Line ~2700)
-
+- DELETE `/services/{uuid}` (Delete)
   - Delete service
-  - Response: 204 No Content
+  - Optional query params:
+    - delete_configurations (boolean, default: true)
+    - delete_volumes (boolean, default: true)
+    - docker_cleanup (boolean, default: true)
+    - delete_connected_networks (boolean, default: true)
   - Auth: Bearer token required
 
-- POST `/services/{uuid}/restart` (Line ~2750)
+## Supported Service Types
 
-  - Restart service
-  - Response: 202 Accepted
-  - Auth: Bearer token required
+- Development Tools:
 
-- GET `/services/{uuid}/logs` (Line ~2800)
-  - Get service logs
-  - Query params: since (optional)
-  - Response: Array of Log entries
-  - Auth: Bearer token required
+  - code-server
+  - gitea (with various DB options)
+  - docker-registry
+
+- CMS & Documentation:
+
+  - wordpress (with various DB options)
+  - ghost
+  - mediawiki
+  - dokuwiki
+
+- Monitoring & Analytics:
+
+  - grafana
+  - umami
+  - glances
+  - uptime-kuma
+
+- Collaboration & Communication:
+
+  - rocketchat
+  - chatwoot
+  - nextcloud
+
+- Database Management:
+
+  - phpmyadmin
+  - nocodb
+  - directus
+
+- And many more specialized services
 
 ## Implementation Checklist
 
-- [ ] Service List Resource
+- [ ] Basic Service Management
 
-  - [ ] resources://coolify/services/list
-  - [ ] resources://coolify/services/templates (available service types)
-  - [ ] Filter by environment/project
+  - [ ] List services resource
+  - [ ] Get service details
+  - [ ] Create service
+  - [ ] Delete service
 
-- [ ] Service Management Tools
+- [ ] Service Type Support
 
-  - [ ] createService tool
-  - [ ] configureService tool
-  - [ ] deleteService tool
-  - [ ] restartService tool
-  - [ ] updateService tool
+  - [ ] Development tools deployment
+  - [ ] CMS system deployment
+  - [ ] Monitoring tools deployment
+  - [ ] Collaboration tools deployment
+  - [ ] Database tools deployment
 
-- [ ] Service Monitoring
-
-  - [ ] resources://coolify/services/{id}/status
-  - [ ] resources://coolify/services/{id}/logs
-  - [ ] Configuration view (masked secrets)
-
-- [ ] Testing
-  - [ ] Service deployment tests
-  - [ ] Configuration management tests
-  - [ ] Service template validation
+- [ ] Resource Testing
+  - [ ] Unit tests for service operations
+  - [ ] Integration tests with mock data
+  - [ ] Live test with real Coolify instance
 
 ## Dependencies
 
 - ADR 001 (Core Server Setup)
-- ADR 004 (Environment Management)
+- ADR 002 (Server Information Resources)
+- ADR 003 (Project Management)

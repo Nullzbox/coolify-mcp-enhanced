@@ -52,13 +52,6 @@ Core application deployment functionality - allows deploying and managing applic
   - Auth: Bearer token required
   - ✅ Implemented
 
-- GET `/applications/{uuid}/logs` (Line ~1750)
-  - Get application logs
-  - Query params: since (optional)
-  - Response: Array of Log entries
-  - Auth: Bearer token required
-  - ✅ Implemented
-
 ## Implementation Checklist
 
 - [x] Application List Resource
@@ -76,14 +69,12 @@ Core application deployment functionality - allows deploying and managing applic
 
 - [x] Application Monitoring
 
-  - [x] resources://coolify/applications/{id}/logs
   - [x] resources://coolify/applications/{id}/status
   - [x] Basic metrics
 
 - [x] Testing
   - [x] Deployment workflow tests
   - [x] Configuration management tests
-  - [x] Log retrieval tests
 
 ## Dependencies
 
