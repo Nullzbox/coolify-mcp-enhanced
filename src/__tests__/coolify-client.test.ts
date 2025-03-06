@@ -461,4 +461,135 @@ describe('CoolifyClient', () => {
       await expect(client.getDatabase('invalid-uuid')).rejects.toThrow(errorMessage);
     });
   });
+
+  describe('Service Management', () => {
+    const mockService = {
+      id: 1,
+      uuid: 'test-service-uuid',
+      name: 'test-service',
+      description: 'Test service',
+      type: 'code-server' as const,
+      status: 'running' as const,
+      created_at: '2024-03-06T12:00:00Z',
+      updated_at: '2024-03-06T12:00:00Z',
+      project_uuid: 'test-project-uuid',
+      environment_name: 'production',
+      environment_uuid: 'test-env-uuid',
+      server_uuid: 'test-server-uuid',
+      domains: ['test-service.example.com'],
+    };
+
+    beforeEach(() => {
+      mockFetch.mockClear();
+    });
+
+    it('should list services', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve([mockService]),
+      });
+
+      const result = await client.listServices();
+
+      expect(result).toEqual([mockService]);
+      expect(mockFetch).toHaveBeenCalledWith(
+        'http://test.coolify.io/api/v1/services',
+        expect.objectContaining({
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: 'Bearer test-token',
+          },
+        }),
+      );
+    });
+
+    it('should get service details', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve(mockService),
+      });
+
+      const result = await client.getService('test-service-uuid');
+
+      expect(result).toEqual(mockService);
+      expect(mockFetch).toHaveBeenCalledWith(
+        'http://test.coolify.io/api/v1/services/test-service-uuid',
+        expect.objectContaining({
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: 'Bearer test-token',
+          },
+        }),
+      );
+    });
+
+    it('should create service', async () => {
+      const createData = {
+        type: 'code-server' as const,
+        name: 'test-service',
+        description: 'Test service',
+        project_uuid: 'test-project-uuid',
+        environment_name: 'production',
+        server_uuid: 'test-server-uuid',
+        instant_deploy: true,
+      };
+
+      const mockResponse = {
+        uuid: 'test-service-uuid',
+        domains: ['test-service.example.com'],
+      };
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve(mockResponse),
+      });
+
+      const result = await client.createService(createData);
+
+      expect(result).toEqual(mockResponse);
+      expect(mockFetch).toHaveBeenCalledWith(
+        'http://test.coolify.io/api/v1/services',
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify(createData),
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: 'Bearer test-token',
+          },
+        }),
+      );
+    });
+
+    it('should delete service', async () => {
+      const mockResponse = { message: 'Service deleted' };
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve(mockResponse),
+      });
+
+      const result = await client.deleteService('test-service-uuid', {
+        deleteConfigurations: true,
+        deleteVolumes: true,
+      });
+
+      expect(result).toEqual(mockResponse);
+      expect(mockFetch).toHaveBeenCalledWith(
+        'http://test.coolify.io/api/v1/services/test-service-uuid?delete_configurations=true&delete_volumes=true',
+        expect.objectContaining({
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: 'Bearer test-token',
+          },
+        }),
+      );
+    });
+
+    it('should handle service errors', async () => {
+      const errorMessage = 'Service not found';
+      mockFetch.mockRejectedValue(new Error(errorMessage));
+
+      await expect(client.getService('invalid-uuid')).rejects.toThrow(errorMessage);
+    });
+  });
 });
