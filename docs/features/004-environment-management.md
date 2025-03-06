@@ -2,52 +2,59 @@
 
 ## Context
 
-Environment management within projects - allows setting up different environments (dev, staging, prod).
+Environment management within projects - allows retrieving environment information and deploying applications within environments.
 
 ## API Endpoints Used
 
-- GET `/environments` (Line ~1200)
+- GET `/projects/{uuid}/{environment_name_or_uuid}`
 
-  - Lists all environments
-  - Query params: project_uuid (optional)
-  - Response: Array of Environment objects
-  - Auth: Bearer token required
-
-- POST `/environments` (Line ~1250)
-
-  - Create new environment
-  - Request body: {
-    name: string,
-    project_uuid: string,
-    variables?: Record<string, string>
-    }
+  - Get environment details by project UUID and environment name/UUID
   - Response: Environment object
   - Auth: Bearer token required
 
-- GET `/environments/{uuid}` (Line ~1300)
-
-  - Get environment details
-  - Response: Environment object with variables
+- POST `/applications/{uuid}/deploy`
+  - Deploy an application using its UUID
+  - Response: Deployment object
   - Auth: Bearer token required
 
-- DELETE `/environments/{uuid}` (Line ~1350)
+Note: Environment creation and management is handled through the Projects API. Environments are created and configured as part of project setup.
 
-  - Delete environment
-  - Response: 204 No Content
-  - Auth: Bearer token required
+## Implementation Status
 
-- PUT `/environments/{uuid}/variables` (Line ~1400)
-  - Update environment variables
-  - Request body: { variables: Record<string, string> }
-  - Response: Updated Environment object
-  - Auth: Bearer token required
+### Completed
 
-## Implementation Checklist
+- [x] Environment Detail Resource
 
-- [x] Environment List Resource
-- [x] Environment Management Tools
+  - [x] GET project environment endpoint implemented
+  - [x] Client method: `getProjectEnvironment`
+  - [x] MCP tool: `get_project_environment`
+
+- [x] Application Deployment
+  - [x] Deploy application endpoint implemented
+  - [x] Client method: `deployApplication`
+  - [x] MCP tool: `deploy_application`
+
+### Environment Schema
+
+```typescript
+interface Environment {
+  id: number;
+  name: string;
+  project_id: number;
+  created_at: string;
+  updated_at: string;
+  description: string;
+}
+```
 
 ## Dependencies
 
 - ADR 001 (Core Server Setup)
 - ADR 003 (Project Management)
+
+## Notes
+
+- Environment management is tightly coupled with projects in the Coolify API
+- Environment variables are managed at the application level during application creation/updates
+- Direct environment CRUD operations are not available through dedicated endpoints
+- Environment information can be retrieved through the project endpoints

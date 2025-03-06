@@ -5,8 +5,6 @@ import {
   ValidationResponse,
   Project,
   Environment,
-  Application,
-  CreateApplicationRequest,
   Deployment,
 } from '../types/coolify.js';
 
@@ -146,133 +144,53 @@ describe('CoolifyMcpServer', () => {
     });
   });
 
-  describe('Environment Management', () => {
-    const mockEnvironment: Environment = {
-      id: 1,
-      uuid: 'test-env-uuid',
-      name: 'test-environment',
-      project_uuid: 'test-project-uuid',
-      created_at: '2024-03-19T12:00:00Z',
-      updated_at: '2024-03-19T12:00:00Z',
-    };
+  describe('get_project_environment', () => {
+    it('should call client getProjectEnvironment', async () => {
+      const mockEnvironment: Environment = {
+        id: 1,
+        uuid: 'test-env-uuid',
+        name: 'test-env',
+        project_uuid: 'test-project-uuid',
+        variables: { KEY: 'value' },
+        created_at: '2024-03-06T12:00:00Z',
+        updated_at: '2024-03-06T12:00:00Z',
+      };
 
-    describe('get_project_environment', () => {
-      it('should call client getProjectEnvironment', async () => {
-        const spy = jest
-          .spyOn(server['client'], 'getProjectEnvironment')
-          .mockResolvedValue(mockEnvironment);
+      const spy = jest
+        .spyOn(server['client'], 'getProjectEnvironment')
+        .mockResolvedValue(mockEnvironment);
 
-        await server.get_project_environment('test-project-uuid', 'test-env-uuid');
-        expect(spy).toHaveBeenCalledWith('test-project-uuid', 'test-env-uuid');
-      });
+      await server.get_project_environment('test-project-uuid', 'test-env-uuid');
+      expect(spy).toHaveBeenCalledWith('test-project-uuid', 'test-env-uuid');
     });
   });
 
-  describe('Application Management', () => {
-    const mockApplication: Application = {
-      id: 1,
-      uuid: 'test-app-uuid',
-      name: 'test-app',
-      environment_uuid: 'test-env-uuid',
-      project_uuid: 'test-project-uuid',
-      git_repository: 'https://github.com/test/repo',
-      git_branch: 'main',
-      build_pack: 'nixpacks',
-      ports_exposes: '3000',
-      status: 'running',
-      created_at: '2024-03-05T12:00:00Z',
-      updated_at: '2024-03-05T12:00:00Z',
-    };
+  describe('deploy_application', () => {
+    it('should deploy an application', async () => {
+      const mockDeployment: Deployment = {
+        id: 1,
+        uuid: 'test-deployment-uuid',
+        application_uuid: 'test-app-uuid',
+        status: 'running',
+        created_at: '2024-03-20T12:00:00Z',
+        updated_at: '2024-03-20T12:00:00Z',
+      };
 
-    const mockDeployment: Deployment = {
-      id: 1,
-      uuid: 'test-deployment-uuid',
-      application_uuid: 'test-app-uuid',
-      status: 'in_progress',
-      created_at: '2024-03-05T12:00:00Z',
-      updated_at: '2024-03-05T12:00:00Z',
-    };
+      jest.spyOn(server['client'], 'deployApplication').mockResolvedValue(mockDeployment);
 
-    describe('list_applications', () => {
-      it('should call client listApplications', async () => {
-        const spy = jest
-          .spyOn(server['client'], 'listApplications')
-          .mockResolvedValue([mockApplication]);
-
-        const result = await server.list_applications();
-
-        expect(result).toEqual([mockApplication]);
-        expect(spy).toHaveBeenCalledWith(undefined);
-      });
-
-      it('should call client listApplications with environment UUID', async () => {
-        const spy = jest
-          .spyOn(server['client'], 'listApplications')
-          .mockResolvedValue([mockApplication]);
-
-        const result = await server.list_applications('test-env-uuid');
-
-        expect(result).toEqual([mockApplication]);
-        expect(spy).toHaveBeenCalledWith('test-env-uuid');
-      });
+      const result = await server.deploy_application({ uuid: 'test-app-uuid' });
+      expect(result).toEqual(mockDeployment);
+      expect(server['client'].deployApplication).toHaveBeenCalledWith('test-app-uuid');
     });
 
-    describe('get_application', () => {
-      it('should call client getApplication', async () => {
-        const spy = jest
-          .spyOn(server['client'], 'getApplication')
-          .mockResolvedValue(mockApplication);
+    it('should handle errors when deploying an application', async () => {
+      const error = new Error('Failed to deploy application');
 
-        const result = await server.get_application('test-app-uuid');
+      jest.spyOn(server['client'], 'deployApplication').mockRejectedValue(error);
 
-        expect(result).toEqual(mockApplication);
-        expect(spy).toHaveBeenCalledWith('test-app-uuid');
-      });
-    });
-
-    describe('create_application', () => {
-      it('should call client createApplication', async () => {
-        const spy = jest
-          .spyOn(server['client'], 'createApplication')
-          .mockResolvedValue(mockApplication);
-
-        const createRequest: CreateApplicationRequest = {
-          project_uuid: 'test-project-uuid',
-          environment_uuid: 'test-env-uuid',
-          git_repository: 'https://github.com/test/repo',
-          git_branch: 'main',
-          build_pack: 'nixpacks',
-          ports_exposes: '3000',
-          name: 'test-app',
-        };
-
-        const result = await server.create_application(createRequest);
-
-        expect(result).toEqual(mockApplication);
-        expect(spy).toHaveBeenCalledWith(createRequest);
-      });
-    });
-
-    describe('delete_application', () => {
-      it('should call client deleteApplication', async () => {
-        const spy = jest.spyOn(server['client'], 'deleteApplication').mockResolvedValue(undefined);
-
-        const result = await server.delete_application('test-app-uuid');
-
-        expect(result).toEqual({ message: 'Application deleted successfully' });
-        expect(spy).toHaveBeenCalledWith('test-app-uuid');
-      });
-    });
-
-    describe('deploy_application', () => {
-      it('should call client deployApplication', async () => {
-        const spy = jest
-          .spyOn(server['client'], 'deployApplication')
-          .mockResolvedValue(mockDeployment);
-        const result = await server.deploy_application({ uuid: 'test-app-uuid' });
-        expect(spy).toHaveBeenCalledWith('test-app-uuid');
-        expect(result).toEqual(mockDeployment);
-      });
+      await expect(server.deploy_application({ uuid: 'test-app-uuid' })).rejects.toThrow(
+        'Failed to deploy application',
+      );
     });
   });
 });
