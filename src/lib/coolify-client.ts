@@ -146,7 +146,9 @@ export class CoolifyClient {
   }
 
   async deployApplication(uuid: string): Promise<Deployment> {
-    const response = await this.request<Deployment>(`/applications/${uuid}/deploy`);
+    const response = await this.request<Deployment>(`/applications/${uuid}/deploy`, {
+      method: 'POST',
+    });
     return response;
   }
 
