@@ -6,9 +6,6 @@ import {
   Project,
   Environment,
   Deployment,
-  CoolifyConfig,
-  ResourceStatus,
-  ServerInfo,
 } from '../types/coolify.js';
 
 describe('CoolifyMcpServer', () => {
@@ -179,9 +176,7 @@ describe('CoolifyMcpServer', () => {
         updated_at: '2024-03-20T12:00:00Z',
       };
 
-      jest
-        .spyOn(server['client'], 'deployApplication')
-        .mockResolvedValue(mockDeployment);
+      jest.spyOn(server['client'], 'deployApplication').mockResolvedValue(mockDeployment);
 
       const result = await server.deploy_application({ uuid: 'test-app-uuid' });
       expect(result).toEqual(mockDeployment);
@@ -193,9 +188,9 @@ describe('CoolifyMcpServer', () => {
 
       jest.spyOn(server['client'], 'deployApplication').mockRejectedValue(error);
 
-      await expect(
-        server.deploy_application({ uuid: 'test-app-uuid' })
-      ).rejects.toThrow('Failed to deploy application');
+      await expect(server.deploy_application({ uuid: 'test-app-uuid' })).rejects.toThrow(
+        'Failed to deploy application',
+      );
     });
   });
 });

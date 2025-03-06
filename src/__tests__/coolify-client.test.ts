@@ -1,13 +1,5 @@
 import { CoolifyClient } from '../lib/coolify-client.js';
-import type {
-  ServerInfo,
-  ServerResources,
-  Environment,
-  CoolifyConfig,
-  Deployment,
-  Project,
-  ResourceStatus,
-} from '../types/coolify.js';
+import type { ServerInfo, ServerResources, Environment, Deployment } from '../types/coolify.js';
 
 // Mock fetch globally
 const mockFetch = jest.fn();
@@ -345,7 +337,7 @@ describe('CoolifyClient', () => {
       });
 
       await expect(client.deployApplication('test-app-uuid')).rejects.toThrow(
-        'Failed to deploy application'
+        'Failed to deploy application',
       );
     });
   });
