@@ -1,5 +1,5 @@
 ---
-description: FOLLOW Coolify MCP workflow WHEN implementing new Coolify API endpoints TO ensure consistent and tested MCP tools
+description: FOLLOW Coolify MCP workflow WHEN implementing new Coolify API endpoints TO ensure consistent and tested MCP
 globs: src/**/*.{ts,tsx}
 alwaysApply: false
 ---
@@ -13,7 +13,7 @@ alwaysApply: false
 
 ## Requirements
 1. Start by reviewing feature documentation in docs/features
-2. Verify endpoint exists in openapi.yaml specification
+2. Verify endpoint exists in docs/openapi-chunks/* 
 3. Follow existing implementation patterns:
    - Add types to src/types/coolify.ts
    - Add client method to src/lib/coolify-client.ts
