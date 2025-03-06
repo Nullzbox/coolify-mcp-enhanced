@@ -90,7 +90,15 @@ export interface DatabaseBase {
   uuid: string;
   name: string;
   description?: string;
-  type: 'postgresql' | 'mysql' | 'mariadb' | 'mongodb' | 'redis' | 'keydb' | 'clickhouse' | 'dragonfly';
+  type:
+    | 'postgresql'
+    | 'mysql'
+    | 'mariadb'
+    | 'mongodb'
+    | 'redis'
+    | 'keydb'
+    | 'clickhouse'
+    | 'dragonfly';
   status: 'running' | 'stopped' | 'error';
   created_at: string;
   updated_at: string;
@@ -166,14 +174,14 @@ export interface DragonflyDatabase extends DatabaseBase {
   dragonfly_password: string;
 }
 
-export type Database = 
-  | PostgresDatabase 
-  | MySQLDatabase 
-  | MariaDBDatabase 
-  | MongoDBDatabase 
-  | RedisDatabase 
-  | KeyDBDatabase 
-  | ClickhouseDatabase 
+export type Database =
+  | PostgresDatabase
+  | MySQLDatabase
+  | MariaDBDatabase
+  | MongoDBDatabase
+  | RedisDatabase
+  | KeyDBDatabase
+  | ClickhouseDatabase
   | DragonflyDatabase;
 
 export interface DatabaseUpdateRequest {

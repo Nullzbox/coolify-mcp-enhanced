@@ -375,7 +375,8 @@ export class CoolifyMcpServer {
         deleteConfigurations: z.boolean().optional().describe('Whether to delete configurations'),
         deleteVolumes: z.boolean().optional().describe('Whether to delete volumes'),
         dockerCleanup: z.boolean().optional().describe('Whether to run docker cleanup'),
-        deleteConnectedNetworks: z.boolean()
+        deleteConnectedNetworks: z
+          .boolean()
           .optional()
           .describe('Whether to delete connected networks'),
       },
