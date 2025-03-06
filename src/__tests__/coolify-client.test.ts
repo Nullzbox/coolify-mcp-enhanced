@@ -341,4 +341,124 @@ describe('CoolifyClient', () => {
       );
     });
   });
+
+  describe('Database Management', () => {
+    const mockDatabase = {
+      id: 1,
+      uuid: 'test-db-uuid',
+      name: 'test-db',
+      description: 'Test database',
+      type: 'postgresql' as const,
+      status: 'running' as const,
+      created_at: '2024-03-06T12:00:00Z',
+      updated_at: '2024-03-06T12:00:00Z',
+      is_public: false,
+      image: 'postgres:latest',
+      postgres_user: 'postgres',
+      postgres_password: 'test123',
+      postgres_db: 'testdb',
+    };
+
+    beforeEach(() => {
+      mockFetch.mockClear();
+    });
+
+    it('should list databases', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve([mockDatabase]),
+      });
+
+      const result = await client.listDatabases();
+
+      expect(result).toEqual([mockDatabase]);
+      expect(mockFetch).toHaveBeenCalledWith(
+        'http://test.coolify.io/api/v1/databases',
+        expect.objectContaining({
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: 'Bearer test-token',
+          },
+        }),
+      );
+    });
+
+    it('should get database details', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve(mockDatabase),
+      });
+
+      const result = await client.getDatabase('test-db-uuid');
+
+      expect(result).toEqual(mockDatabase);
+      expect(mockFetch).toHaveBeenCalledWith(
+        'http://test.coolify.io/api/v1/databases/test-db-uuid',
+        expect.objectContaining({
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: 'Bearer test-token',
+          },
+        }),
+      );
+    });
+
+    it('should update database', async () => {
+      const updateData = {
+        name: 'updated-db',
+        description: 'Updated description',
+      };
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({ ...mockDatabase, ...updateData }),
+      });
+
+      const result = await client.updateDatabase('test-db-uuid', updateData);
+
+      expect(result).toEqual({ ...mockDatabase, ...updateData });
+      expect(mockFetch).toHaveBeenCalledWith(
+        'http://test.coolify.io/api/v1/databases/test-db-uuid',
+        expect.objectContaining({
+          method: 'PATCH',
+          body: JSON.stringify(updateData),
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: 'Bearer test-token',
+          },
+        }),
+      );
+    });
+
+    it('should delete database', async () => {
+      const mockResponse = { message: 'Database deleted' };
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve(mockResponse),
+      });
+
+      const result = await client.deleteDatabase('test-db-uuid', {
+        deleteConfigurations: true,
+        deleteVolumes: true,
+      });
+
+      expect(result).toEqual(mockResponse);
+      expect(mockFetch).toHaveBeenCalledWith(
+        'http://test.coolify.io/api/v1/databases/test-db-uuid?delete_configurations=true&delete_volumes=true',
+        expect.objectContaining({
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: 'Bearer test-token',
+          },
+        }),
+      );
+    });
+
+    it('should handle database errors', async () => {
+      const errorMessage = 'Database not found';
+      mockFetch.mockRejectedValue(new Error(errorMessage));
+
+      await expect(client.getDatabase('invalid-uuid')).rejects.toThrow(errorMessage);
+    });
+  });
 });
