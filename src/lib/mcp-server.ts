@@ -14,6 +14,9 @@ import {
   Deployment,
   Database,
   DatabaseUpdateRequest,
+  Service,
+  CreateServiceRequest,
+  DeleteServiceOptions,
 } from '../types/coolify.js';
 import { z } from 'zod';
 
@@ -421,6 +424,197 @@ export class CoolifyMcpServer {
       },
     );
 
+    this.server.tool('list_services', 'List all services', {}, async () => {
+      try {
+        const services = await this.client.listServices();
+        return {
+          content: [{ type: 'text', text: JSON.stringify(services) }],
+          isError: false,
+        };
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        return {
+          content: [{ type: 'text', text: errorMessage }],
+          isError: true,
+        };
+      }
+    });
+
+    this.server.tool(
+      'get_service',
+      'Get details about a specific service',
+      { uuid: z.string().describe('UUID of the service to get details for') },
+      async (params) => {
+        try {
+          const service = await this.client.getService(params.uuid);
+          return {
+            content: [{ type: 'text', text: JSON.stringify(service) }],
+            isError: false,
+          };
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+          return {
+            content: [{ type: 'text', text: errorMessage }],
+            isError: true,
+          };
+        }
+      },
+    );
+
+    this.server.tool(
+      'create_service',
+      'Create a new service',
+      {
+        type: z
+          .enum([
+            'activepieces',
+            'appsmith',
+            'appwrite',
+            'authentik',
+            'babybuddy',
+            'budge',
+            'changedetection',
+            'chatwoot',
+            'classicpress-with-mariadb',
+            'classicpress-with-mysql',
+            'classicpress-without-database',
+            'cloudflared',
+            'code-server',
+            'dashboard',
+            'directus',
+            'directus-with-postgresql',
+            'docker-registry',
+            'docuseal',
+            'docuseal-with-postgres',
+            'dokuwiki',
+            'duplicati',
+            'emby',
+            'embystat',
+            'fider',
+            'filebrowser',
+            'firefly',
+            'formbricks',
+            'ghost',
+            'gitea',
+            'gitea-with-mariadb',
+            'gitea-with-mysql',
+            'gitea-with-postgresql',
+            'glance',
+            'glances',
+            'glitchtip',
+            'grafana',
+            'grafana-with-postgresql',
+            'grocy',
+            'heimdall',
+            'homepage',
+            'jellyfin',
+            'kuzzle',
+            'listmonk',
+            'logto',
+            'mediawiki',
+            'meilisearch',
+            'metabase',
+            'metube',
+            'minio',
+            'moodle',
+            'n8n',
+            'n8n-with-postgresql',
+            'next-image-transformation',
+            'nextcloud',
+            'nocodb',
+            'odoo',
+            'openblocks',
+            'pairdrop',
+            'penpot',
+            'phpmyadmin',
+            'pocketbase',
+            'posthog',
+            'reactive-resume',
+            'rocketchat',
+            'shlink',
+            'slash',
+            'snapdrop',
+            'statusnook',
+            'stirling-pdf',
+            'supabase',
+            'syncthing',
+            'tolgee',
+            'trigger',
+            'trigger-with-external-database',
+            'twenty',
+            'umami',
+            'unleash-with-postgresql',
+            'unleash-without-database',
+            'uptime-kuma',
+            'vaultwarden',
+            'vikunja',
+            'weblate',
+            'whoogle',
+            'wordpress-with-mariadb',
+            'wordpress-with-mysql',
+            'wordpress-without-database',
+          ])
+          .describe('Type of service to create'),
+        name: z.string().optional().describe('Name for the service'),
+        description: z.string().optional().describe('Description of the service'),
+        project_uuid: z.string().describe('UUID of the project to create the service in'),
+        environment_name: z.string().optional().describe('Name of the environment'),
+        environment_uuid: z.string().optional().describe('UUID of the environment'),
+        server_uuid: z.string().describe('UUID of the server to deploy the service on'),
+        destination_uuid: z.string().optional().describe('UUID of the destination'),
+        instant_deploy: z
+          .boolean()
+          .optional()
+          .describe('Whether to deploy the service immediately'),
+      },
+      async (params) => {
+        try {
+          const result = await this.client.createService(params as CreateServiceRequest);
+          return {
+            content: [{ type: 'text', text: JSON.stringify(result) }],
+            isError: false,
+          };
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+          return {
+            content: [{ type: 'text', text: errorMessage }],
+            isError: true,
+          };
+        }
+      },
+    );
+
+    this.server.tool(
+      'delete_service',
+      'Delete a service',
+      {
+        uuid: z.string().describe('UUID of the service to delete'),
+        deleteConfigurations: z.boolean().optional().describe('Whether to delete configurations'),
+        deleteVolumes: z.boolean().optional().describe('Whether to delete volumes'),
+        dockerCleanup: z.boolean().optional().describe('Whether to run docker cleanup'),
+        deleteConnectedNetworks: z
+          .boolean()
+          .optional()
+          .describe('Whether to delete connected networks'),
+      },
+      async (params) => {
+        try {
+          const { uuid, ...options } = params;
+          const result = await this.client.deleteService(uuid, options);
+          return {
+            content: [{ type: 'text', text: JSON.stringify(result) }],
+            isError: false,
+          };
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+          return {
+            content: [{ type: 'text', text: errorMessage }],
+            isError: true,
+          };
+        }
+      },
+    );
+
     // End of tool definitions
   }
 
@@ -502,5 +696,21 @@ export class CoolifyMcpServer {
     },
   ): Promise<{ message: string }> {
     return this.client.deleteDatabase(uuid, options);
+  }
+
+  async list_services(): Promise<Service[]> {
+    return this.client.listServices();
+  }
+
+  async get_service(uuid: string): Promise<Service> {
+    return this.client.getService(uuid);
+  }
+
+  async create_service(data: CreateServiceRequest): Promise<{ uuid: string; domains: string[] }> {
+    return this.client.createService(data);
+  }
+
+  async delete_service(uuid: string, options?: DeleteServiceOptions): Promise<{ message: string }> {
+    return this.client.deleteService(uuid, options);
   }
 }

@@ -271,4 +271,87 @@ describe('CoolifyMcpServer', () => {
       await expect(server.get_database('invalid-uuid')).rejects.toThrow(errorMessage);
     });
   });
+
+  describe('Service Management', () => {
+    const mockService = {
+      id: 1,
+      uuid: 'test-service-uuid',
+      name: 'test-service',
+      description: 'Test service',
+      type: 'code-server' as const,
+      status: 'running' as const,
+      created_at: '2024-03-06T12:00:00Z',
+      updated_at: '2024-03-06T12:00:00Z',
+      project_uuid: 'test-project-uuid',
+      environment_name: 'production',
+      environment_uuid: 'test-env-uuid',
+      server_uuid: 'test-server-uuid',
+      domains: ['test-service.example.com'],
+    };
+
+    it('should list services', async () => {
+      const spy = jest.spyOn(server['client'], 'listServices').mockResolvedValue([mockService]);
+
+      const result = await server.list_services();
+
+      expect(result).toEqual([mockService]);
+      expect(spy).toHaveBeenCalled();
+    });
+
+    it('should get service details', async () => {
+      const spy = jest.spyOn(server['client'], 'getService').mockResolvedValue(mockService);
+
+      const result = await server.get_service('test-service-uuid');
+
+      expect(result).toEqual(mockService);
+      expect(spy).toHaveBeenCalledWith('test-service-uuid');
+    });
+
+    it('should create service', async () => {
+      const createData = {
+        type: 'code-server' as const,
+        name: 'test-service',
+        description: 'Test service',
+        project_uuid: 'test-project-uuid',
+        environment_name: 'production',
+        server_uuid: 'test-server-uuid',
+        instant_deploy: true,
+      };
+
+      const mockResponse = {
+        uuid: 'test-service-uuid',
+        domains: ['test-service.example.com'],
+      };
+
+      const spy = jest.spyOn(server['client'], 'createService').mockResolvedValue(mockResponse);
+
+      const result = await server.create_service(createData);
+
+      expect(result).toEqual(mockResponse);
+      expect(spy).toHaveBeenCalledWith(createData);
+    });
+
+    it('should delete service', async () => {
+      const mockResponse = { message: 'Service deleted' };
+      const spy = jest.spyOn(server['client'], 'deleteService').mockResolvedValue(mockResponse);
+
+      const result = await server.delete_service('test-service-uuid', {
+        deleteConfigurations: true,
+        deleteVolumes: true,
+      });
+
+      expect(result).toEqual(mockResponse);
+      expect(spy).toHaveBeenCalledWith('test-service-uuid', {
+        deleteConfigurations: true,
+        deleteVolumes: true,
+      });
+    });
+
+    it('should handle service errors', async () => {
+      const errorMessage = 'Service not found';
+      jest.spyOn(server['client'], 'getService').mockRejectedValue(new Error(errorMessage));
+
+      await expect(server.get_service('invalid-uuid')).rejects.toThrow(errorMessage);
+    });
+  });
 });
