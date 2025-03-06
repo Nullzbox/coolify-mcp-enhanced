@@ -2,89 +2,70 @@
 
 ## Context
 
-Database service management - allows creating and managing database instances (MySQL, PostgreSQL, MongoDB, Redis).
+Implementation of database management features through MCP resources, allowing users to manage various types of databases (PostgreSQL, MySQL, MariaDB, MongoDB, Redis, etc.).
 
 ## API Endpoints Used
 
-- GET `/databases` (Line ~2000)
+- GET `/databases` (List)
 
   - Lists all databases
-  - Query params: environment_uuid (optional)
   - Response: Array of Database objects
   - Auth: Bearer token required
 
-- POST `/databases` (Line ~2050)
+- GET `/databases/{uuid}` (Get)
 
-  - Create new database
-  - Request body: {
-    environment_uuid: string,
-    type: "mysql" | "postgresql" | "mongodb" | "redis",
-    version: string,
-    name: string,
-    settings?: DatabaseSettings
-    }
+  - Get database details
   - Response: Database object
   - Auth: Bearer token required
 
-- GET `/databases/{uuid}` (Line ~2100)
-
-  - Get database details
-  - Response: Database object with connection info
-  - Auth: Bearer token required
-
-- DELETE `/databases/{uuid}` (Line ~2150)
+- DELETE `/databases/{uuid}` (Delete)
 
   - Delete database
-  - Response: 204 No Content
+  - Optional query params:
+    - delete_configurations (boolean, default: true)
+    - delete_volumes (boolean, default: true)
+    - docker_cleanup (boolean, default: true)
+    - delete_connected_networks (boolean, default: true)
   - Auth: Bearer token required
 
-- GET `/databases/{uuid}/backups` (Line ~2175)
-
-  - List database backups
-  - Response: Array of Backup objects
-  - Auth: Bearer token required
-
-- POST `/databases/{uuid}/backup` (Line ~2200)
-
-  - Create database backup
-  - Response: Backup object
-  - Auth: Bearer token required
-
-- POST `/databases/{uuid}/restore` (Line ~2250)
-  - Restore database from backup
-  - Request body: { backup_id: string }
-  - Response: 202 Accepted
-  - Auth: Bearer token required
+- PATCH `/databases/{uuid}` (Update)
+  - Update database configuration
+  - Supports various database types:
+    - PostgreSQL
+    - MariaDB
+    - MySQL
+    - MongoDB
+    - Redis
+    - KeyDB
+    - Clickhouse
+    - Dragonfly
 
 ## Implementation Checklist
 
-- [ ] Database List Resource
+- [ ] Basic Database Management
 
-  - [ ] resources://coolify/databases/list
-  - [ ] Filter by environment/project
-  - [ ] Status information
+  - [ ] List databases resource
+  - [ ] Get database details
+  - [ ] Delete database
+  - [ ] Update database configuration
 
-- [ ] Database Management Tools
+- [ ] Database Type Support
 
-  - [ ] createDatabase tool (supports MySQL, PostgreSQL, MongoDB, Redis)
-  - [ ] configureDatabase tool
-  - [ ] deleteDatabase tool
-  - [ ] backupDatabase tool
-  - [ ] restoreDatabase tool
-  - [ ] listBackups tool
+  - [ ] PostgreSQL configuration
+  - [ ] MariaDB configuration
+  - [ ] MySQL configuration
+  - [ ] MongoDB configuration
+  - [ ] Redis configuration
+  - [ ] KeyDB configuration
+  - [ ] Clickhouse configuration
+  - [ ] Dragonfly configuration
 
-- [ ] Database Monitoring
-
-  - [ ] resources://coolify/databases/{id}/status
-  - [ ] resources://coolify/databases/{id}/backups
-  - [ ] Connection information (masked credentials)
-
-- [ ] Testing
-  - [ ] Database creation tests for each type
-  - [ ] Backup/restore workflow tests
-  - [ ] Security tests for credential handling
+- [ ] Resource Testing
+  - [ ] Unit tests for database operations
+  - [ ] Integration tests with mock data
+  - [ ] Live test with real Coolify instance
 
 ## Dependencies
 
 - ADR 001 (Core Server Setup)
-- ADR 004 (Environment Management)
+- ADR 002 (Server Information Resources)

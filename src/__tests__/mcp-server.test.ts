@@ -1,6 +1,6 @@
 import { CoolifyMcpServer } from '../lib/mcp-server.js';
 import { jest } from '@jest/globals';
-import type {
+import {
   ServerResources,
   ValidationResponse,
   Project,
@@ -8,7 +8,6 @@ import type {
   Application,
   CreateApplicationRequest,
   Deployment,
-  LogEntry,
 } from '../types/coolify.js';
 
 describe('CoolifyMcpServer', () => {
@@ -194,14 +193,6 @@ describe('CoolifyMcpServer', () => {
       updated_at: '2024-03-05T12:00:00Z',
     };
 
-    const mockLogs: LogEntry[] = [
-      {
-        timestamp: '2024-03-05T12:00:00Z',
-        level: 'info',
-        message: 'Application started',
-      },
-    ];
-
     describe('list_applications', () => {
       it('should call client listApplications', async () => {
         const spy = jest
@@ -278,32 +269,9 @@ describe('CoolifyMcpServer', () => {
         const spy = jest
           .spyOn(server['client'], 'deployApplication')
           .mockResolvedValue(mockDeployment);
-
-        const result = await server.deploy_application('test-app-uuid');
-
-        expect(result).toEqual(mockDeployment);
+        const result = await server.deploy_application({ uuid: 'test-app-uuid' });
         expect(spy).toHaveBeenCalledWith('test-app-uuid');
-      });
-    });
-
-    describe('get_application_logs', () => {
-      it('should call client getApplicationLogs without since parameter', async () => {
-        const spy = jest.spyOn(server['client'], 'getApplicationLogs').mockResolvedValue(mockLogs);
-
-        const result = await server.get_application_logs('test-app-uuid');
-
-        expect(result).toEqual(mockLogs);
-        expect(spy).toHaveBeenCalledWith('test-app-uuid', undefined);
-      });
-
-      it('should call client getApplicationLogs with since parameter', async () => {
-        const spy = jest.spyOn(server['client'], 'getApplicationLogs').mockResolvedValue(mockLogs);
-        const since = '2024-03-05T11:00:00Z';
-
-        const result = await server.get_application_logs('test-app-uuid', since);
-
-        expect(result).toEqual(mockLogs);
-        expect(spy).toHaveBeenCalledWith('test-app-uuid', since);
+        expect(result).toEqual(mockDeployment);
       });
     });
   });

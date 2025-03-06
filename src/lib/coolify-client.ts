@@ -12,7 +12,6 @@ import {
   Application,
   CreateApplicationRequest,
   Deployment,
-  LogEntry,
 } from '../types/coolify.js';
 
 export class CoolifyClient {
@@ -147,14 +146,8 @@ export class CoolifyClient {
   }
 
   async deployApplication(uuid: string): Promise<Deployment> {
-    return this.request<Deployment>(`/applications/${uuid}/deploy`, {
-      method: 'POST',
-    });
-  }
-
-  async getApplicationLogs(uuid: string, since?: string): Promise<LogEntry[]> {
-    const query = since ? `?since=${since}` : '';
-    return this.request<LogEntry[]>(`/applications/${uuid}/logs${query}`);
+    const response = await this.request<Deployment>(`/applications/${uuid}/deploy`);
+    return response;
   }
 
   // Add more methods as needed for other endpoints
