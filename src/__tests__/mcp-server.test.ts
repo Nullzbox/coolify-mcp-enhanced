@@ -158,7 +158,9 @@ describe('CoolifyMcpServer', () => {
         updated_at: '2024-03-06T12:00:00Z',
       };
 
-      const spy = jest.spyOn(server['client'], 'getProjectEnvironment').mockResolvedValue(mockEnvironment);
+      const spy = jest
+        .spyOn(server['client'], 'getProjectEnvironment')
+        .mockResolvedValue(mockEnvironment);
 
       await server.get_project_environment('test-project-uuid', 'test-env-uuid');
       expect(spy).toHaveBeenCalledWith('test-project-uuid', 'test-env-uuid');

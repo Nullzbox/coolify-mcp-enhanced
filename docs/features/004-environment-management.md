@@ -7,6 +7,7 @@ Environment management within projects - allows retrieving environment informati
 ## API Endpoints Used
 
 - GET `/projects/{uuid}/{environment_name_or_uuid}`
+
   - Get environment details by project UUID and environment name/UUID
   - Response: Environment object
   - Auth: Bearer token required
@@ -21,7 +22,9 @@ Note: Environment creation and management is handled through the Projects API. E
 ## Implementation Status
 
 ### Completed
+
 - [x] Environment Detail Resource
+
   - [x] GET project environment endpoint implemented
   - [x] Client method: `getProjectEnvironment`
   - [x] MCP tool: `get_project_environment`
@@ -32,6 +35,7 @@ Note: Environment creation and management is handled through the Projects API. E
   - [x] MCP tool: `deploy_application`
 
 ### Environment Schema
+
 ```typescript
 interface Environment {
   id: number;
