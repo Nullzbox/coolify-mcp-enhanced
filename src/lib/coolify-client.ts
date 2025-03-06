@@ -10,6 +10,8 @@ import {
   UpdateProjectRequest,
   Environment,
   Deployment,
+  Database,
+  DatabaseUpdateRequest,
 } from '../types/coolify.js';
 
 export class CoolifyClient {
@@ -126,6 +128,54 @@ export class CoolifyClient {
       method: 'POST',
     });
     return response;
+  }
+
+  async listDatabases(): Promise<Database[]> {
+    return this.request<Database[]>('/databases');
+  }
+
+  async getDatabase(uuid: string): Promise<Database> {
+    return this.request<Database>(`/databases/${uuid}`);
+  }
+
+  async updateDatabase(uuid: string, data: DatabaseUpdateRequest): Promise<Database> {
+    return this.request<Database>(`/databases/${uuid}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteDatabase(
+    uuid: string,
+    options?: {
+      deleteConfigurations?: boolean;
+      deleteVolumes?: boolean;
+      dockerCleanup?: boolean;
+      deleteConnectedNetworks?: boolean;
+    },
+  ): Promise<{ message: string }> {
+    const queryParams = new URLSearchParams();
+    if (options) {
+      if (options.deleteConfigurations !== undefined) {
+        queryParams.set('delete_configurations', options.deleteConfigurations.toString());
+      }
+      if (options.deleteVolumes !== undefined) {
+        queryParams.set('delete_volumes', options.deleteVolumes.toString());
+      }
+      if (options.dockerCleanup !== undefined) {
+        queryParams.set('docker_cleanup', options.dockerCleanup.toString());
+      }
+      if (options.deleteConnectedNetworks !== undefined) {
+        queryParams.set('delete_connected_networks', options.deleteConnectedNetworks.toString());
+      }
+    }
+
+    const queryString = queryParams.toString();
+    const url = queryString ? `/databases/${uuid}?${queryString}` : `/databases/${uuid}`;
+
+    return this.request<{ message: string }>(url, {
+      method: 'DELETE',
+    });
   }
 
   // Add more methods as needed for other endpoints

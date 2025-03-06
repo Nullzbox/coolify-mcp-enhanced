@@ -193,4 +193,82 @@ describe('CoolifyMcpServer', () => {
       );
     });
   });
+
+  describe('Database Management', () => {
+    const mockDatabase = {
+      id: 1,
+      uuid: 'test-db-uuid',
+      name: 'test-db',
+      description: 'Test database',
+      type: 'postgresql' as const,
+      status: 'running' as const,
+      created_at: '2024-03-06T12:00:00Z',
+      updated_at: '2024-03-06T12:00:00Z',
+      is_public: false,
+      image: 'postgres:latest',
+      postgres_user: 'postgres',
+      postgres_password: 'test123',
+      postgres_db: 'testdb',
+    };
+
+    it('should list databases', async () => {
+      const spy = jest.spyOn(server['client'], 'listDatabases').mockResolvedValue([mockDatabase]);
+
+      const result = await server.list_databases();
+
+      expect(result).toEqual([mockDatabase]);
+      expect(spy).toHaveBeenCalled();
+    });
+
+    it('should get database details', async () => {
+      const spy = jest.spyOn(server['client'], 'getDatabase').mockResolvedValue(mockDatabase);
+
+      const result = await server.get_database('test-db-uuid');
+
+      expect(result).toEqual(mockDatabase);
+      expect(spy).toHaveBeenCalledWith('test-db-uuid');
+    });
+
+    it('should update database', async () => {
+      const updateData = {
+        name: 'updated-db',
+        description: 'Updated description',
+      };
+      const spy = jest
+        .spyOn(server['client'], 'updateDatabase')
+        .mockResolvedValue({ ...mockDatabase, ...updateData, type: 'postgresql' as const });
+
+      const result = await server.update_database('test-db-uuid', updateData);
+
+      expect(result).toEqual({
+        ...mockDatabase,
+        ...updateData,
+        type: 'postgresql',
+      });
+      expect(spy).toHaveBeenCalledWith('test-db-uuid', updateData);
+    });
+
+    it('should delete database', async () => {
+      const mockResponse = { message: 'Database deleted' };
+      const spy = jest.spyOn(server['client'], 'deleteDatabase').mockResolvedValue(mockResponse);
+
+      const result = await server.delete_database('test-db-uuid', {
+        deleteConfigurations: true,
+        deleteVolumes: true,
+      });
+
+      expect(result).toEqual(mockResponse);
+      expect(spy).toHaveBeenCalledWith('test-db-uuid', {
+        deleteConfigurations: true,
+        deleteVolumes: true,
+      });
+    });
+
+    it('should handle database errors', async () => {
+      const errorMessage = 'Database not found';
+      jest.spyOn(server['client'], 'getDatabase').mockRejectedValue(new Error(errorMessage));
+
+      await expect(server.get_database('invalid-uuid')).rejects.toThrow(errorMessage);
+    });
+  });
 });

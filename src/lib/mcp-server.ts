@@ -12,6 +12,8 @@ import {
   UpdateProjectRequest,
   Environment,
   Deployment,
+  Database,
+  DatabaseUpdateRequest,
 } from '../types/coolify.js';
 import { z } from 'zod';
 
@@ -265,6 +267,137 @@ export class CoolifyMcpServer {
       },
     );
 
+    this.server.tool('list_databases', 'List all databases', {}, async () => {
+      try {
+        const databases = await this.client.listDatabases();
+        return {
+          content: [{ type: 'text', text: JSON.stringify(databases) }],
+          isError: false,
+        };
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        return {
+          content: [{ type: 'text', text: errorMessage }],
+          isError: true,
+        };
+      }
+    });
+
+    this.server.tool(
+      'get_database',
+      'Get details about a specific database',
+      { uuid: z.string().describe('UUID of the database to get details for') },
+      async (params) => {
+        try {
+          const database = await this.client.getDatabase(params.uuid);
+          return {
+            content: [{ type: 'text', text: JSON.stringify(database) }],
+            isError: false,
+          };
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+          return {
+            content: [{ type: 'text', text: errorMessage }],
+            isError: true,
+          };
+        }
+      },
+    );
+
+    this.server.tool(
+      'update_database',
+      'Update an existing database',
+      {
+        uuid: z.string().describe('UUID of the database to update'),
+        name: z.string().optional().describe('New name for the database'),
+        description: z.string().optional().describe('New description for the database'),
+        image: z.string().optional().describe('New Docker image for the database'),
+        is_public: z.boolean().optional().describe('Whether the database should be public'),
+        public_port: z.number().optional().describe('Public port for the database'),
+        limits_memory: z.string().optional().describe('Memory limit (e.g., "512M", "1G")'),
+        limits_memory_swap: z.string().optional().describe('Memory swap limit'),
+        limits_memory_swappiness: z.number().optional().describe('Memory swappiness (0-100)'),
+        limits_memory_reservation: z.string().optional().describe('Memory reservation'),
+        limits_cpus: z.string().optional().describe('CPU limit (e.g., "0.5", "1")'),
+        limits_cpuset: z.string().optional().describe('CPU set (e.g., "0", "0,1")'),
+        limits_cpu_shares: z.number().optional().describe('CPU shares (relative weight)'),
+        // Database-specific configuration
+        postgres_user: z.string().optional().describe('PostgreSQL user'),
+        postgres_password: z.string().optional().describe('PostgreSQL password'),
+        postgres_db: z.string().optional().describe('PostgreSQL database name'),
+        postgres_initdb_args: z.string().optional().describe('PostgreSQL initdb arguments'),
+        postgres_host_auth_method: z.string().optional().describe('PostgreSQL host auth method'),
+        postgres_conf: z.string().optional().describe('PostgreSQL configuration'),
+        clickhouse_admin_user: z.string().optional().describe('Clickhouse admin user'),
+        clickhouse_admin_password: z.string().optional().describe('Clickhouse admin password'),
+        dragonfly_password: z.string().optional().describe('Dragonfly password'),
+        redis_password: z.string().optional().describe('Redis password'),
+        redis_conf: z.string().optional().describe('Redis configuration'),
+        keydb_password: z.string().optional().describe('KeyDB password'),
+        keydb_conf: z.string().optional().describe('KeyDB configuration'),
+        mariadb_conf: z.string().optional().describe('MariaDB configuration'),
+        mariadb_root_password: z.string().optional().describe('MariaDB root password'),
+        mariadb_user: z.string().optional().describe('MariaDB user'),
+        mariadb_password: z.string().optional().describe('MariaDB password'),
+        mariadb_database: z.string().optional().describe('MariaDB database name'),
+        mongo_conf: z.string().optional().describe('MongoDB configuration'),
+        mongo_initdb_root_username: z.string().optional().describe('MongoDB root username'),
+        mongo_initdb_root_password: z.string().optional().describe('MongoDB root password'),
+        mongo_initdb_database: z.string().optional().describe('MongoDB initial database'),
+        mysql_root_password: z.string().optional().describe('MySQL root password'),
+        mysql_password: z.string().optional().describe('MySQL password'),
+        mysql_user: z.string().optional().describe('MySQL user'),
+        mysql_database: z.string().optional().describe('MySQL database name'),
+      },
+      async (params) => {
+        try {
+          const { uuid, ...updateData } = params;
+          const result = await this.client.updateDatabase(uuid, updateData);
+          return {
+            content: [{ type: 'text', text: JSON.stringify(result) }],
+            isError: false,
+          };
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+          return {
+            content: [{ type: 'text', text: errorMessage }],
+            isError: true,
+          };
+        }
+      },
+    );
+
+    this.server.tool(
+      'delete_database',
+      'Delete a database',
+      {
+        uuid: z.string().describe('UUID of the database to delete'),
+        deleteConfigurations: z.boolean().optional().describe('Whether to delete configurations'),
+        deleteVolumes: z.boolean().optional().describe('Whether to delete volumes'),
+        dockerCleanup: z.boolean().optional().describe('Whether to run docker cleanup'),
+        deleteConnectedNetworks: z
+          .boolean()
+          .optional()
+          .describe('Whether to delete connected networks'),
+      },
+      async (params) => {
+        try {
+          const { uuid, ...options } = params;
+          const result = await this.client.deleteDatabase(uuid, options);
+          return {
+            content: [{ type: 'text', text: JSON.stringify(result) }],
+            isError: false,
+          };
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+          return {
+            content: [{ type: 'text', text: errorMessage }],
+            isError: true,
+          };
+        }
+      },
+    );
+
     this.server.tool(
       'deploy_application',
       'Deploy an application using its UUID',
@@ -345,5 +478,29 @@ export class CoolifyMcpServer {
 
   async deploy_application(params: { uuid: string }): Promise<Deployment> {
     return this.client.deployApplication(params.uuid);
+  }
+
+  async list_databases(): Promise<Database[]> {
+    return this.client.listDatabases();
+  }
+
+  async get_database(uuid: string): Promise<Database> {
+    return this.client.getDatabase(uuid);
+  }
+
+  async update_database(uuid: string, data: DatabaseUpdateRequest): Promise<Database> {
+    return this.client.updateDatabase(uuid, data);
+  }
+
+  async delete_database(
+    uuid: string,
+    options?: {
+      deleteConfigurations?: boolean;
+      deleteVolumes?: boolean;
+      dockerCleanup?: boolean;
+      deleteConnectedNetworks?: boolean;
+    },
+  ): Promise<{ message: string }> {
+    return this.client.deleteDatabase(uuid, options);
   }
 }
