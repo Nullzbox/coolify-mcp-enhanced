@@ -9,8 +9,6 @@ import {
   CreateProjectRequest,
   UpdateProjectRequest,
   Environment,
-  Application,
-  CreateApplicationRequest,
   Deployment,
 } from '../types/coolify.js';
 
@@ -121,28 +119,6 @@ export class CoolifyClient {
     environmentNameOrUuid: string,
   ): Promise<Environment> {
     return this.request<Environment>(`/projects/${projectUuid}/${environmentNameOrUuid}`);
-  }
-
-  async listApplications(environmentUuid?: string): Promise<Application[]> {
-    const query = environmentUuid ? `?environment_uuid=${environmentUuid}` : '';
-    return this.request<Application[]>(`/applications${query}`);
-  }
-
-  async getApplication(uuid: string): Promise<Application> {
-    return this.request<Application>(`/applications/${uuid}`);
-  }
-
-  async createApplication(application: CreateApplicationRequest): Promise<Application> {
-    return this.request<Application>('/applications/public', {
-      method: 'POST',
-      body: JSON.stringify(application),
-    });
-  }
-
-  async deleteApplication(uuid: string): Promise<void> {
-    await this.request(`/applications/${uuid}`, {
-      method: 'DELETE',
-    });
   }
 
   async deployApplication(uuid: string): Promise<Deployment> {
