@@ -1,11 +1,17 @@
 {
   "name": "@masonator/coolify-mcp",
   "scope": "@masonator",
-  "version": "0.1.6",
+  "version": "0.1.2",
   "description": "MCP server implementation for Coolify",
   "type": "module",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
   "bin": {
     "coolify-mcp": "dist/index.js"
   },
@@ -14,8 +20,17 @@
   ],
   "scripts": {
     "build": "tsc && shx chmod +x dist/*.js",
-    "prepare": "npm run build",
-    "watch": "tsc --watch"
+    "dev": "tsc --watch",
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest",
+    "test:watch": "NODE_OPTIONS=--experimental-vm-modules jest --watch",
+    "test:coverage": "NODE_OPTIONS=--experimental-vm-modules jest --coverage",
+    "lint": "eslint . --ext .ts",
+    "lint:fix": "eslint . --ext .ts --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "prepare": "husky",
+    "prepublishOnly": "npm test && npm run lint",
+    "start": "node dist/index.js"
   },
   "keywords": [
     "coolify",
@@ -25,13 +40,25 @@
   "author": "Stuart Mason",
   "license": "MIT",
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.6.1",
+    "@modelcontextprotocol/sdk": "1.0.1",
+    "@modelcontextprotocol/server-github": "^2025.1.23",
     "reflect-metadata": "^0.2.2",
     "zod": "^3.24.2"
   },
   "devDependencies": {
+    "@types/jest": "^29.5.14",
     "@types/node": "^20.17.23",
+    "@typescript-eslint/eslint-plugin": "^7.18.0",
+    "@typescript-eslint/parser": "^7.18.0",
+    "eslint": "^8.56.0",
+    "eslint-config-prettier": "^9.1.0",
+    "husky": "^9.0.11",
+    "jest": "^29.7.0",
+    "lint-staged": "^15.2.2",
+    "markdownlint-cli2": "^0.12.1",
+    "prettier": "^3.5.3",
     "shx": "^0.3.4",
+    "ts-jest": "^29.2.6",
     "typescript": "^5.8.2"
   },
   "engines": {
