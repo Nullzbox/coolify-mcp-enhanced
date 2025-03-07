@@ -1,8 +1,8 @@
-// @ts-ignore
+// @ts-expect-error - SDK module resolution
 import { Server } from '@modelcontextprotocol/sdk/dist/esm/server/index.js';
-// @ts-ignore
+// @ts-expect-error - SDK module resolution
 import { Transport } from '@modelcontextprotocol/sdk/dist/esm/shared/transport.js';
-// @ts-ignore
+// @ts-expect-error - SDK module resolution
 import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/dist/esm/types.js';
 import { CoolifyClient } from './coolify-client.js';
 import {
