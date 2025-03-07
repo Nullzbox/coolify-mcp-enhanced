@@ -1,5 +1,5 @@
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
+import { McpServer } from '@modelcontextprotocol/sdk/server/mcp';
+import { Transport } from '@modelcontextprotocol/sdk/shared/transport';
 import { CoolifyClient } from './coolify-client.js';
 import {
   CoolifyConfig,
@@ -19,10 +19,20 @@ import {
   DeleteServiceOptions,
 } from '../types/coolify.js';
 import { z } from 'zod';
+import {
+  DatabaseResources,
+  DeploymentResources,
+  ApplicationResources,
+  ServiceResources,
+} from '../resources/index.js';
 
 export class CoolifyMcpServer {
   private server: McpServer;
   private client: CoolifyClient;
+  private databaseResources: DatabaseResources;
+  private deploymentResources: DeploymentResources;
+  private applicationResources: ApplicationResources;
+  private serviceResources: ServiceResources;
 
   constructor(config: CoolifyConfig) {
     this.server = new McpServer({
@@ -31,6 +41,10 @@ export class CoolifyMcpServer {
     });
 
     this.client = new CoolifyClient(config);
+    this.databaseResources = new DatabaseResources(this.client);
+    this.deploymentResources = new DeploymentResources(this.client);
+    this.applicationResources = new ApplicationResources(this.client);
+    this.serviceResources = new ServiceResources(this.client);
     this.setupTools();
   }
 
@@ -55,7 +69,7 @@ export class CoolifyMcpServer {
       'get_server',
       'Get details about a specific Coolify server',
       { uuid: z.string().describe('UUID of the server to get details for') },
-      async (params) => {
+      async (params: { uuid: string }) => {
         try {
           const server = await this.client.getServer(params.uuid);
           return {
@@ -76,7 +90,7 @@ export class CoolifyMcpServer {
       'get_server_resources',
       'Get the current resources running on a specific Coolify server',
       { uuid: z.string().describe('UUID of the server to get resources for') },
-      async (params) => {
+      async (params: { uuid: string }) => {
         try {
           const resources = await this.client.getServerResources(params.uuid);
           return {
