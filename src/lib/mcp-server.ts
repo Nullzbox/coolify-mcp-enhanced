@@ -1,6 +1,9 @@
-import { Server } from '@modelcontextprotocol/sdk/server/index.js';
-import { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
-import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
+// @ts-ignore
+import { Server } from '@modelcontextprotocol/sdk/dist/esm/server/index.js';
+// @ts-ignore
+import { Transport } from '@modelcontextprotocol/sdk/dist/esm/shared/transport.js';
+// @ts-ignore
+import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/dist/esm/types.js';
 import { CoolifyClient } from './coolify-client.js';
 import {
   CoolifyConfig,
@@ -290,7 +293,7 @@ export class CoolifyMcpServer {
       };
     });
 
-    this.server.setRequestHandler(CallToolRequestSchema, async (request) => {
+    this.server.setRequestHandler(CallToolRequestSchema, async (request: { params: { name: string; arguments?: Record<string, unknown> } }) => {
       try {
         if (!request.params.arguments) {
           throw new Error('Arguments are required');
