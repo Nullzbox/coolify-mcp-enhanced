@@ -1,6 +1,6 @@
-import { Server } from '@modelcontextprotocol/sdk/dist/cjs/server/index.js';
-import { Transport } from '@modelcontextprotocol/sdk/dist/cjs/shared/transport.js';
-import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/dist/cjs/types.js';
+import { Server } from '@modelcontextprotocol/sdk/server/index.js';
+import { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
+import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
 import { CoolifyClient } from './coolify-client.js';
 import {
   CoolifyConfig,
