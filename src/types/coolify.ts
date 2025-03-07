@@ -348,3 +348,14 @@ export interface DeleteServiceOptions {
   dockerCleanup?: boolean;
   deleteConnectedNetworks?: boolean;
 }
+
+export interface Application {
+  uuid: string;
+  name: string;
+  // Add other application properties as needed
+}
+
+export interface CreateApplicationRequest {
+  name: string;
+  // Add other required fields for application creation
+}
