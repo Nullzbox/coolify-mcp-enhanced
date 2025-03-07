@@ -7,6 +7,7 @@ A Model Context Protocol (MCP) server implementation for [Coolify](https://cooli
 Here are example prompts you can use with MCP-compatible AI assistants to interact with your Coolify instance:
 
 ### Server Management
+
 ```
 # List and Inspect Servers
 - Show me all Coolify servers in my instance
@@ -22,6 +23,7 @@ Here are example prompts you can use with MCP-compatible AI assistants to intera
 ```
 
 ### Project Management
+
 ```
 # Project Operations
 - List all my Coolify projects
@@ -37,6 +39,7 @@ Here are example prompts you can use with MCP-compatible AI assistants to intera
 ```
 
 ### Application and Service Management
+
 ```
 # Application Management
 - List all applications
@@ -56,6 +59,7 @@ Here are example prompts you can use with MCP-compatible AI assistants to intera
 ```
 
 ### Database Management
+
 ```
 # Database Operations
 - List all databases
@@ -74,6 +78,7 @@ Here are example prompts you can use with MCP-compatible AI assistants to intera
 ```
 
 ### Deployment Management
+
 ```
 # Deployment Operations
 - Show me all active deployments
@@ -86,6 +91,7 @@ Here are example prompts you can use with MCP-compatible AI assistants to intera
 ## Installation
 
 ### Prerequisites
+
 - Node.js >= 18
 - A running Coolify instance
 - Coolify API access token
@@ -93,6 +99,7 @@ Here are example prompts you can use with MCP-compatible AI assistants to intera
 ### Setup in AI Tools
 
 #### Claude Desktop
+
 ```json
 "coolify": {
     "command": "npx",
@@ -107,6 +114,7 @@ Here are example prompts you can use with MCP-compatible AI assistants to intera
 ```
 
 #### Cursor
+
 ```bash
 env COOLIFY_ACCESS_TOKEN:0|your-secret-token COOLIFY_BASE_URL:https://your-coolify-instance.com npx -y @stumason/coolify-mcp
 ```
@@ -114,6 +122,7 @@ env COOLIFY_ACCESS_TOKEN:0|your-secret-token COOLIFY_BASE_URL:https://your-cooli
 ## Development
 
 ### Local Setup
+
 ```bash
 # Clone the repository
 git clone https://github.com/stumason/coolify-mcp.git
@@ -130,6 +139,7 @@ npm test
 ```
 
 ### Environment Variables
+
 ```bash
 # Required
 COOLIFY_ACCESS_TOKEN=your_access_token_here
@@ -143,6 +153,7 @@ COOLIFY_BASE_URL=https://your.coolify.instance
 ### Resource Types
 
 #### Application
+
 ```typescript
 interface Application {
   uuid: string;
@@ -152,6 +163,7 @@ interface Application {
 ```
 
 #### Service
+
 ```typescript
 interface Service {
   id: number;
@@ -167,6 +179,7 @@ interface Service {
 ```
 
 #### Database
+
 ```typescript
 interface Database {
   id: number;
@@ -181,6 +194,7 @@ interface Database {
 ```
 
 #### Deployment
+
 ```typescript
 interface Deployment {
   id: number;
