@@ -25,7 +25,7 @@ git pull
 npm test
 npm version patch
 git push origin main --tags
-npm publish
+npm publish --access public
 npm install -g package-name@latest
 </example>
 
