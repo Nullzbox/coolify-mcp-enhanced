@@ -29,7 +29,9 @@ describe('ApplicationResources', () => {
 
   describe('createApplication', () => {
     it('should throw not implemented error', async () => {
-      await expect(resources.createApplication({ name: 'test-app' })).rejects.toThrow('Not implemented');
+      await expect(resources.createApplication({ name: 'test-app' })).rejects.toThrow(
+        'Not implemented',
+      );
     });
   });
 
