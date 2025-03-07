@@ -15,9 +15,9 @@
   "scripts": {
     "build": "tsc && shx chmod +x dist/*.js",
     "dev": "tsc --watch",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage",
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest --config jest.config.cjs",
+    "test:watch": "NODE_OPTIONS=--experimental-vm-modules jest --watch --config jest.config.cjs",
+    "test:coverage": "NODE_OPTIONS=--experimental-vm-modules jest --coverage --config jest.config.cjs",
     "lint": "eslint . --ext .ts",
     "lint:fix": "eslint . --ext .ts --fix",
     "format": "prettier --write .",
