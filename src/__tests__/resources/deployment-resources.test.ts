@@ -14,7 +14,7 @@ describe('DeploymentResources', () => {
     created_at: '2024-01-01',
     updated_at: '2024-01-01',
     application_uuid: 'app-uuid',
-    environment_uuid: 'env-uuid'
+    environment_uuid: 'env-uuid',
   };
 
   beforeEach(() => {

@@ -7,10 +7,7 @@ I want to be able to have the following config:
   "mcpServers": {
     "coolify": {
       "command": "npx",
-      "args": [
-        "-y",
-        "@masonator/coolify-mcp"
-      ],
+      "args": ["-y", "@masonator/coolify-mcp"],
       "env": {
         "COOLIFY_ACCESS_TOKEN": "token",
         "COOLIFY_BASE_URL": "https://url"
@@ -18,10 +15,7 @@ I want to be able to have the following config:
     },
     "github": {
       "command": "npx",
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-github"
-      ],
+      "args": ["-y", "@modelcontextprotocol/server-github"],
       "env": {
         "GITHUB_PERSONAL_ACCESS_TOKEN": "pat"
       }
@@ -161,9 +155,7 @@ For reference, the github package.json looks like this:
   "bin": {
     "mcp-server-github": "dist/index.js"
   },
-  "files": [
-    "dist"
-  ],
+  "files": ["dist"],
   "scripts": {
     "build": "tsc && shx chmod +x dist/*.js",
     "prepare": "npm run build",
