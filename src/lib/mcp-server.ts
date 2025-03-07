@@ -41,11 +41,32 @@ export class CoolifyMcpServer {
     this.server = new Server(
       {
         name: 'coolify',
-        version: '0.1.0',
+        version: '1.6.1',
       },
       {
         capabilities: {
-          tools: {},
+          tools: {
+            list_servers: true,
+            get_server: true,
+            get_server_resources: true,
+            get_server_domains: true,
+            validate_server: true,
+            list_projects: true,
+            get_project: true,
+            create_project: true,
+            update_project: true,
+            delete_project: true,
+            get_project_environment: true,
+            list_databases: true,
+            get_database: true,
+            update_database: true,
+            delete_database: true,
+            deploy_application: true,
+            list_services: true,
+            get_service: true,
+            create_service: true,
+            delete_service: true
+          },
         },
       },
     );

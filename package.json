@@ -41,6 +41,7 @@
   "author": "Stuart Mason",
   "license": "MIT",
   "dependencies": {
+    "@masonator/coolify-mcp": "^0.1.12",
     "@modelcontextprotocol/sdk": "^1.6.1",
     "@modelcontextprotocol/server-github": "^2025.1.23",
     "reflect-metadata": "^0.2.2",
