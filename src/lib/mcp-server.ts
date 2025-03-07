@@ -1,9 +1,9 @@
 // @ts-expect-error - SDK module resolution
-import { Server } from '@modelcontextprotocol/sdk/server/index.js';
+import { Server } from '@modelcontextprotocol/sdk/dist/esm/server/index.js';
 // @ts-expect-error - SDK module resolution
-import { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
+import { Transport } from '@modelcontextprotocol/sdk/dist/esm/shared/transport.js';
 // @ts-expect-error - SDK module resolution
-import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
+import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/dist/esm/types.js';
 import { CoolifyClient } from './coolify-client.js';
 import {
   CoolifyConfig,
