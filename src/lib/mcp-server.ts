@@ -1,5 +1,5 @@
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp';
-import { Transport } from '@modelcontextprotocol/sdk/shared/transport';
+import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
 import { CoolifyClient } from './coolify-client.js';
 import {
   CoolifyConfig,
@@ -111,7 +111,7 @@ export class CoolifyMcpServer {
       'get_server_domains',
       'Get the domains associated with a specific Coolify server',
       { uuid: z.string().describe('UUID of the server to get domains for') },
-      async (params) => {
+      async (params: { uuid: string }) => {
         try {
           const domains = await this.client.getServerDomains(params.uuid);
           return {
@@ -132,7 +132,7 @@ export class CoolifyMcpServer {
       'validate_server',
       'Validate the connection to a specific Coolify server',
       { uuid: z.string().describe('UUID of the server to validate') },
-      async (params) => {
+      async (params: { uuid: string }) => {
         try {
           const result = await this.client.validateServer(params.uuid);
           return {
@@ -169,7 +169,7 @@ export class CoolifyMcpServer {
       'get_project',
       'Get details about a specific Coolify project',
       { uuid: z.string().describe('UUID of the project to get details for') },
-      async (params) => {
+      async (params: { uuid: string }) => {
         try {
           const project = await this.client.getProject(params.uuid);
           return {
@@ -193,7 +193,7 @@ export class CoolifyMcpServer {
         name: z.string().describe('Name of the project'),
         description: z.string().optional().describe('Optional description of the project'),
       },
-      async (params) => {
+      async (params: { name: string; description?: string }) => {
         try {
           const result = await this.client.createProject(params);
           return {
@@ -218,7 +218,7 @@ export class CoolifyMcpServer {
         name: z.string().optional().describe('New name for the project'),
         description: z.string().optional().describe('New description for the project'),
       },
-      async (params) => {
+      async (params: { uuid: string; name?: string; description?: string }) => {
         try {
           const { uuid, ...updateData } = params;
           const result = await this.client.updateProject(uuid, updateData);
@@ -240,7 +240,7 @@ export class CoolifyMcpServer {
       'delete_project',
       'Delete a Coolify project',
       { uuid: z.string().describe('UUID of the project to delete') },
-      async (params) => {
+      async (params: { uuid: string }) => {
         try {
           const result = await this.client.deleteProject(params.uuid);
           return {
@@ -264,7 +264,7 @@ export class CoolifyMcpServer {
         project_uuid: z.string().describe('UUID of the project'),
         environment_name_or_uuid: z.string().describe('Name or UUID of the environment'),
       },
-      async (params) => {
+      async (params: { project_uuid: string; environment_name_or_uuid: string }) => {
         try {
           const environment = await this.client.getProjectEnvironment(
             params.project_uuid,
@@ -304,7 +304,7 @@ export class CoolifyMcpServer {
       'get_database',
       'Get details about a specific database',
       { uuid: z.string().describe('UUID of the database to get details for') },
-      async (params) => {
+      async (params: { uuid: string }) => {
         try {
           const database = await this.client.getDatabase(params.uuid);
           return {
@@ -366,7 +366,7 @@ export class CoolifyMcpServer {
         mysql_user: z.string().optional().describe('MySQL user'),
         mysql_database: z.string().optional().describe('MySQL database name'),
       },
-      async (params) => {
+      async (params: { uuid: string }) => {
         try {
           const { uuid, ...updateData } = params;
           const result = await this.client.updateDatabase(uuid, updateData);
@@ -397,7 +397,7 @@ export class CoolifyMcpServer {
           .optional()
           .describe('Whether to delete connected networks'),
       },
-      async (params) => {
+      async (params: { uuid: string }) => {
         try {
           const { uuid, ...options } = params;
           const result = await this.client.deleteDatabase(uuid, options);
@@ -421,7 +421,7 @@ export class CoolifyMcpServer {
       {
         uuid: z.string().describe('UUID of the application to deploy'),
       },
-      async (params) => {
+      async (params: { uuid: string }) => {
         try {
           const deployment = await this.client.deployApplication(params.uuid);
           return {
@@ -458,7 +458,7 @@ export class CoolifyMcpServer {
       'get_service',
       'Get details about a specific service',
       { uuid: z.string().describe('UUID of the service to get details for') },
-      async (params) => {
+      async (params: { uuid: string }) => {
         try {
           const service = await this.client.getService(params.uuid);
           return {
@@ -581,7 +581,17 @@ export class CoolifyMcpServer {
           .optional()
           .describe('Whether to deploy the service immediately'),
       },
-      async (params) => {
+      async (params: {
+        type: string;
+        name?: string;
+        description?: string;
+        project_uuid: string;
+        environment_name?: string;
+        environment_uuid?: string;
+        server_uuid: string;
+        destination_uuid?: string;
+        instant_deploy?: boolean;
+      }) => {
         try {
           const result = await this.client.createService(params as CreateServiceRequest);
           return {
@@ -611,7 +621,7 @@ export class CoolifyMcpServer {
           .optional()
           .describe('Whether to delete connected networks'),
       },
-      async (params) => {
+      async (params: { uuid: string }) => {
         try {
           const { uuid, ...options } = params;
           const result = await this.client.deleteService(uuid, options);
