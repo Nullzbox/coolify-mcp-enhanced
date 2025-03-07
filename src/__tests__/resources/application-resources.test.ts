@@ -1,5 +1,6 @@
 import { ApplicationResources } from '../../resources/application-resources.js';
 import { CoolifyClient } from '../../lib/coolify-client.js';
+import { jest } from '@jest/globals';
 
 jest.mock('../../lib/coolify-client.js');
 
@@ -8,10 +9,10 @@ describe('ApplicationResources', () => {
   let mockClient: jest.Mocked<CoolifyClient>;
 
   beforeEach(() => {
-    mockClient = new CoolifyClient({
-      baseUrl: 'http://test.coolify.io',
-      accessToken: 'test-token',
-    }) as jest.Mocked<CoolifyClient>;
+    mockClient = {
+      deployApplication: jest.fn(),
+    } as unknown as jest.Mocked<CoolifyClient>;
+
     resources = new ApplicationResources(mockClient);
   });
 

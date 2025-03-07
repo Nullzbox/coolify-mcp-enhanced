@@ -1,27 +1,26 @@
 import { DeploymentResources } from '../../resources/deployment-resources.js';
 import { CoolifyClient } from '../../lib/coolify-client.js';
-import { Deployment } from '../../types/coolify.js';
+import { jest } from '@jest/globals';
 
 jest.mock('../../lib/coolify-client.js');
 
 describe('DeploymentResources', () => {
-  let resources: DeploymentResources;
   let mockClient: jest.Mocked<CoolifyClient>;
-
-  const mockDeployment: Deployment = {
+  let resources: DeploymentResources;
+  const mockDeployment = {
     id: 1,
-    uuid: 'test-deployment-uuid',
-    application_uuid: 'test-app-uuid',
+    uuid: 'test-uuid',
     status: 'running',
-    created_at: '2024-03-20T12:00:00Z',
-    updated_at: '2024-03-20T12:00:00Z',
+    created_at: '2024-01-01',
+    updated_at: '2024-01-01',
+    application_uuid: 'app-uuid',
+    environment_uuid: 'env-uuid'
   };
 
   beforeEach(() => {
-    mockClient = new CoolifyClient({
-      baseUrl: 'http://test.coolify.io',
-      accessToken: 'test-token',
-    }) as jest.Mocked<CoolifyClient>;
+    mockClient = {
+      deployApplication: jest.fn(),
+    } as unknown as jest.Mocked<CoolifyClient>;
     resources = new DeploymentResources(mockClient);
   });
 
@@ -39,21 +38,20 @@ describe('DeploymentResources', () => {
 
   describe('deploy', () => {
     it('should deploy an application', async () => {
-      mockClient.deployApplication = jest.fn().mockResolvedValue(mockDeployment);
+      mockClient.deployApplication.mockResolvedValue(mockDeployment);
 
-      const result = await resources.deploy({ uuid: 'test-app-uuid', forceRebuild: true });
+      const result = await resources.deploy({ uuid: 'test-uuid' });
 
       expect(result).toEqual(mockDeployment);
-      expect(mockClient.deployApplication).toHaveBeenCalledWith('test-app-uuid');
+      expect(mockClient.deployApplication).toHaveBeenCalledWith('test-uuid');
     });
 
     it('should handle deployment errors', async () => {
-      const error = new Error('Failed to deploy application');
-      mockClient.deployApplication = jest.fn().mockRejectedValue(error);
+      const error = new Error('Deployment failed');
+      mockClient.deployApplication.mockRejectedValue(error);
 
-      await expect(resources.deploy({ uuid: 'test-app-uuid' })).rejects.toThrow(
-        'Failed to deploy application',
-      );
+      await expect(resources.deploy({ uuid: 'test-uuid' })).rejects.toThrow('Deployment failed');
+      expect(mockClient.deployApplication).toHaveBeenCalledWith('test-uuid');
     });
   });
 });

@@ -1,5 +1,6 @@
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp';
-import { Transport } from '@modelcontextprotocol/sdk/shared/transport';
+import { Server } from '@modelcontextprotocol/sdk/server/index.js';
+import { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
+import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
 import { CoolifyClient } from './coolify-client.js';
 import {
   CoolifyConfig,
@@ -17,6 +18,7 @@ import {
   Service,
   CreateServiceRequest,
   DeleteServiceOptions,
+  ServiceType,
 } from '../types/coolify.js';
 import { z } from 'zod';
 import {
@@ -27,7 +29,7 @@ import {
 } from '../resources/index.js';
 
 export class CoolifyMcpServer {
-  private server: McpServer;
+  private server: Server;
   private client: CoolifyClient;
   private databaseResources: DatabaseResources;
   private deploymentResources: DeploymentResources;
@@ -35,601 +37,561 @@ export class CoolifyMcpServer {
   private serviceResources: ServiceResources;
 
   constructor(config: CoolifyConfig) {
-    this.server = new McpServer({
-      name: 'coolify',
-      version: '0.1.0',
-    });
-
     this.client = new CoolifyClient(config);
+    this.server = new Server(
+      {
+        name: 'coolify',
+        version: '0.1.0',
+      },
+      {
+        capabilities: {
+          tools: {},
+        },
+      },
+    );
+
     this.databaseResources = new DatabaseResources(this.client);
     this.deploymentResources = new DeploymentResources(this.client);
     this.applicationResources = new ApplicationResources(this.client);
     this.serviceResources = new ServiceResources(this.client);
-    this.setupTools();
+    this.setupHandlers();
   }
 
-  private setupTools(): void {
-    this.server.tool('list_servers', 'List all Coolify servers', {}, async () => {
-      try {
-        const servers = await this.client.listServers();
-        return {
-          content: [{ type: 'text', text: JSON.stringify(servers) }],
-          isError: false,
-        };
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-        return {
-          content: [{ type: 'text', text: errorMessage }],
-          isError: true,
-        };
-      }
+  private setupHandlers(): void {
+    this.server.setRequestHandler(ListToolsRequestSchema, async () => {
+      return {
+        tools: [
+          {
+            name: 'list_servers',
+            description: 'List all Coolify servers',
+            inputSchema: {},
+          },
+          {
+            name: 'get_server',
+            description: 'Get details about a specific Coolify server',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                uuid: { type: 'string', description: 'UUID of the server to get details for' },
+              },
+              required: ['uuid'],
+            },
+          },
+          {
+            name: 'get_server_resources',
+            description: 'Get the current resources running on a specific Coolify server',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                uuid: { type: 'string', description: 'UUID of the server to get resources for' },
+              },
+              required: ['uuid'],
+            },
+          },
+          {
+            name: 'get_server_domains',
+            description: 'Get the domains associated with a specific Coolify server',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                uuid: { type: 'string', description: 'UUID of the server to get domains for' },
+              },
+              required: ['uuid'],
+            },
+          },
+          {
+            name: 'validate_server',
+            description: 'Validate the connection to a specific Coolify server',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                uuid: { type: 'string', description: 'UUID of the server to validate' },
+              },
+              required: ['uuid'],
+            },
+          },
+          {
+            name: 'list_projects',
+            description: 'List all Coolify projects',
+            inputSchema: {},
+          },
+          {
+            name: 'get_project',
+            description: 'Get details about a specific Coolify project',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                uuid: { type: 'string', description: 'UUID of the project to get details for' },
+              },
+              required: ['uuid'],
+            },
+          },
+          {
+            name: 'create_project',
+            description: 'Create a new Coolify project',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                name: { type: 'string', description: 'Name of the project' },
+                description: { type: 'string', description: 'Optional description of the project' },
+              },
+              required: ['name'],
+            },
+          },
+          {
+            name: 'update_project',
+            description: 'Update an existing Coolify project',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                uuid: { type: 'string', description: 'UUID of the project to update' },
+                name: { type: 'string', description: 'New name for the project' },
+                description: { type: 'string', description: 'New description for the project' },
+              },
+              required: ['uuid'],
+            },
+          },
+          {
+            name: 'delete_project',
+            description: 'Delete a Coolify project',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                uuid: { type: 'string', description: 'UUID of the project to delete' },
+              },
+              required: ['uuid'],
+            },
+          },
+          {
+            name: 'get_project_environment',
+            description: 'Get details about a specific environment in a project',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                project_uuid: { type: 'string', description: 'UUID of the project' },
+                environment_name_or_uuid: {
+                  type: 'string',
+                  description: 'Name or UUID of the environment',
+                },
+              },
+              required: ['project_uuid', 'environment_name_or_uuid'],
+            },
+          },
+          {
+            name: 'list_databases',
+            description: 'List all databases',
+            inputSchema: {},
+          },
+          {
+            name: 'get_database',
+            description: 'Get details about a specific Coolify database',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                uuid: { type: 'string', description: 'UUID of the database to get details for' },
+              },
+              required: ['uuid'],
+            },
+          },
+          {
+            name: 'update_database',
+            description: 'Update a Coolify database',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                uuid: { type: 'string', description: 'UUID of the database to update' },
+                data: { type: 'object', description: 'Update data for the database' },
+              },
+              required: ['uuid', 'data'],
+            },
+          },
+          {
+            name: 'delete_database',
+            description: 'Delete a Coolify database',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                uuid: { type: 'string', description: 'UUID of the database to delete' },
+                options: {
+                  type: 'object',
+                  properties: {
+                    deleteConfigurations: { type: 'boolean' },
+                    deleteVolumes: { type: 'boolean' },
+                    dockerCleanup: { type: 'boolean' },
+                    deleteConnectedNetworks: { type: 'boolean' },
+                  },
+                },
+              },
+              required: ['uuid'],
+            },
+          },
+          {
+            name: 'deploy_application',
+            description: 'Deploy a Coolify application',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                uuid: { type: 'string', description: 'UUID of the application to deploy' },
+              },
+              required: ['uuid'],
+            },
+          },
+          {
+            name: 'list_services',
+            description: 'List all services',
+            inputSchema: {},
+          },
+          {
+            name: 'get_service',
+            description: 'Get details about a specific Coolify service',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                uuid: { type: 'string', description: 'UUID of the service to get details for' },
+              },
+              required: ['uuid'],
+            },
+          },
+          {
+            name: 'create_service',
+            description: 'Create a new Coolify service',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                type: { type: 'string', description: 'Type of service to create' },
+                project_uuid: { type: 'string', description: 'UUID of the project' },
+                server_uuid: { type: 'string', description: 'UUID of the server' },
+                data: { type: 'object', description: 'Additional service configuration' },
+              },
+              required: ['type', 'project_uuid', 'server_uuid'],
+            },
+          },
+          {
+            name: 'delete_service',
+            description: 'Delete a Coolify service',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                uuid: { type: 'string', description: 'UUID of the service to delete' },
+                options: {
+                  type: 'object',
+                  properties: {
+                    deleteConfigurations: { type: 'boolean' },
+                    deleteVolumes: { type: 'boolean' },
+                    dockerCleanup: { type: 'boolean' },
+                    deleteConnectedNetworks: { type: 'boolean' },
+                  },
+                },
+              },
+              required: ['uuid'],
+            },
+          },
+        ],
+      };
     });
 
-    this.server.tool(
-      'get_server',
-      'Get details about a specific Coolify server',
-      { uuid: z.string().describe('UUID of the server to get details for') },
-      async (params: { uuid: string }) => {
-        try {
-          const server = await this.client.getServer(params.uuid);
-          return {
-            content: [{ type: 'text', text: JSON.stringify(server) }],
-            isError: false,
-          };
-        } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-          return {
-            content: [{ type: 'text', text: errorMessage }],
-            isError: true,
-          };
-        }
-      },
-    );
-
-    this.server.tool(
-      'get_server_resources',
-      'Get the current resources running on a specific Coolify server',
-      { uuid: z.string().describe('UUID of the server to get resources for') },
-      async (params: { uuid: string }) => {
-        try {
-          const resources = await this.client.getServerResources(params.uuid);
-          return {
-            content: [{ type: 'text', text: JSON.stringify(resources) }],
-            isError: false,
-          };
-        } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-          return {
-            content: [{ type: 'text', text: errorMessage }],
-            isError: true,
-          };
-        }
-      },
-    );
-
-    this.server.tool(
-      'get_server_domains',
-      'Get the domains associated with a specific Coolify server',
-      { uuid: z.string().describe('UUID of the server to get domains for') },
-      async (params) => {
-        try {
-          const domains = await this.client.getServerDomains(params.uuid);
-          return {
-            content: [{ type: 'text', text: JSON.stringify(domains) }],
-            isError: false,
-          };
-        } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-          return {
-            content: [{ type: 'text', text: errorMessage }],
-            isError: true,
-          };
-        }
-      },
-    );
-
-    this.server.tool(
-      'validate_server',
-      'Validate the connection to a specific Coolify server',
-      { uuid: z.string().describe('UUID of the server to validate') },
-      async (params) => {
-        try {
-          const result = await this.client.validateServer(params.uuid);
-          return {
-            content: [{ type: 'text', text: JSON.stringify(result) }],
-            isError: false,
-          };
-        } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-          return {
-            content: [{ type: 'text', text: errorMessage }],
-            isError: true,
-          };
-        }
-      },
-    );
-
-    this.server.tool('list_projects', 'List all Coolify projects', {}, async () => {
+    this.server.setRequestHandler(CallToolRequestSchema, async (request) => {
       try {
-        const projects = await this.client.listProjects();
-        return {
-          content: [{ type: 'text', text: JSON.stringify(projects) }],
-          isError: false,
-        };
+        if (!request.params.arguments) {
+          throw new Error('Arguments are required');
+        }
+
+        switch (request.params.name) {
+          case 'list_servers': {
+            const servers = await this.client.listServers();
+            return {
+              content: [{ type: 'text', text: JSON.stringify(servers, null, 2) }],
+            };
+          }
+          case 'get_server': {
+            const args = z.object({ uuid: z.string() }).parse(request.params.arguments);
+            const server = await this.client.getServer(args.uuid);
+            return {
+              content: [{ type: 'text', text: JSON.stringify(server, null, 2) }],
+            };
+          }
+          case 'get_server_resources': {
+            const args = z.object({ uuid: z.string() }).parse(request.params.arguments);
+            const resources = await this.client.getServerResources(args.uuid);
+            return {
+              content: [{ type: 'text', text: JSON.stringify(resources, null, 2) }],
+            };
+          }
+          case 'get_server_domains': {
+            const args = z.object({ uuid: z.string() }).parse(request.params.arguments);
+            const domains = await this.client.getServerDomains(args.uuid);
+            return {
+              content: [{ type: 'text', text: JSON.stringify(domains, null, 2) }],
+            };
+          }
+          case 'validate_server': {
+            const args = z.object({ uuid: z.string() }).parse(request.params.arguments);
+            const result = await this.client.validateServer(args.uuid);
+            return {
+              content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+            };
+          }
+          case 'list_projects': {
+            const projects = await this.client.listProjects();
+            return {
+              content: [{ type: 'text', text: JSON.stringify(projects, null, 2) }],
+            };
+          }
+          case 'get_project': {
+            const args = z.object({ uuid: z.string() }).parse(request.params.arguments);
+            const project = await this.client.getProject(args.uuid);
+            return {
+              content: [{ type: 'text', text: JSON.stringify(project, null, 2) }],
+            };
+          }
+          case 'create_project': {
+            const args = z
+              .object({
+                name: z.string(),
+                description: z.string().optional(),
+              })
+              .parse(request.params.arguments);
+            const result = await this.client.createProject(args);
+            return {
+              content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+            };
+          }
+          case 'update_project': {
+            const args = z
+              .object({
+                uuid: z.string(),
+                name: z.string().optional(),
+                description: z.string().optional(),
+              })
+              .parse(request.params.arguments);
+            const { uuid, ...updateData } = args;
+            const result = await this.client.updateProject(uuid, updateData);
+            return {
+              content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+            };
+          }
+          case 'delete_project': {
+            const args = z.object({ uuid: z.string() }).parse(request.params.arguments);
+            const result = await this.client.deleteProject(args.uuid);
+            return {
+              content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+            };
+          }
+          case 'get_project_environment': {
+            const args = z
+              .object({
+                project_uuid: z.string(),
+                environment_name_or_uuid: z.string(),
+              })
+              .parse(request.params.arguments);
+            const environment = await this.client.getProjectEnvironment(
+              args.project_uuid,
+              args.environment_name_or_uuid,
+            );
+            return {
+              content: [{ type: 'text', text: JSON.stringify(environment, null, 2) }],
+            };
+          }
+          case 'list_databases': {
+            const databases = await this.client.listDatabases();
+            return {
+              content: [{ type: 'text', text: JSON.stringify(databases, null, 2) }],
+            };
+          }
+          case 'get_database': {
+            const args = z.object({ uuid: z.string() }).parse(request.params.arguments);
+            const database = await this.client.getDatabase(args.uuid);
+            return {
+              content: [{ type: 'text', text: JSON.stringify(database, null, 2) }],
+            };
+          }
+          case 'update_database': {
+            const args = z
+              .object({
+                uuid: z.string(),
+                data: z.object({}).passthrough(),
+              })
+              .parse(request.params.arguments);
+            const database = await this.client.updateDatabase(args.uuid, args.data);
+            return {
+              content: [{ type: 'text', text: JSON.stringify(database, null, 2) }],
+            };
+          }
+          case 'delete_database': {
+            const args = z
+              .object({
+                uuid: z.string(),
+                options: z
+                  .object({
+                    deleteConfigurations: z.boolean().optional(),
+                    deleteVolumes: z.boolean().optional(),
+                    dockerCleanup: z.boolean().optional(),
+                    deleteConnectedNetworks: z.boolean().optional(),
+                  })
+                  .optional(),
+              })
+              .parse(request.params.arguments);
+            const result = await this.client.deleteDatabase(args.uuid, args.options);
+            return {
+              content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+            };
+          }
+          case 'deploy_application': {
+            const args = z.object({ uuid: z.string() }).parse(request.params.arguments);
+            const deployment = await this.client.deployApplication(args.uuid);
+            return {
+              content: [{ type: 'text', text: JSON.stringify(deployment, null, 2) }],
+            };
+          }
+          case 'list_services': {
+            const services = await this.client.listServices();
+            return {
+              content: [{ type: 'text', text: JSON.stringify(services, null, 2) }],
+            };
+          }
+          case 'get_service': {
+            const args = z.object({ uuid: z.string() }).parse(request.params.arguments);
+            const service = await this.client.getService(args.uuid);
+            return {
+              content: [{ type: 'text', text: JSON.stringify(service, null, 2) }],
+            };
+          }
+          case 'create_service': {
+            const args = z
+              .object({
+                type: z.enum([
+                  'activepieces',
+                  'appsmith',
+                  'appwrite',
+                  'authentik',
+                  'babybuddy',
+                  'budge',
+                  'changedetection',
+                  'chatwoot',
+                  'classicpress-with-mariadb',
+                  'classicpress-with-mysql',
+                  'classicpress-without-database',
+                  'cloudflared',
+                  'code-server',
+                  'dashboard',
+                  'directus',
+                  'directus-with-postgresql',
+                  'docker-registry',
+                  'docuseal',
+                  'docuseal-with-postgres',
+                  'dokuwiki',
+                  'duplicati',
+                  'emby',
+                  'embystat',
+                  'fider',
+                  'filebrowser',
+                  'firefly',
+                  'formbricks',
+                  'ghost',
+                  'gitea',
+                  'gitea-with-mariadb',
+                  'gitea-with-mysql',
+                  'gitea-with-postgresql',
+                  'glance',
+                  'glances',
+                  'glitchtip',
+                  'grafana',
+                  'grafana-with-postgresql',
+                  'grocy',
+                  'heimdall',
+                  'homepage',
+                  'jellyfin',
+                  'kuzzle',
+                  'listmonk',
+                  'logto',
+                  'mediawiki',
+                  'meilisearch',
+                  'metabase',
+                  'metube',
+                  'minio',
+                  'moodle',
+                  'n8n',
+                  'n8n-with-postgresql',
+                  'next-image-transformation',
+                  'nextcloud',
+                  'nocodb',
+                  'odoo',
+                  'openblocks',
+                  'pairdrop',
+                  'penpot',
+                  'phpmyadmin',
+                  'pocketbase',
+                  'posthog',
+                  'reactive-resume',
+                  'rocketchat',
+                  'shlink',
+                  'slash',
+                  'snapdrop',
+                  'statusnook',
+                  'stirling-pdf',
+                  'supabase',
+                  'syncthing',
+                  'tolgee',
+                  'trigger',
+                  'trigger-with-external-database',
+                  'twenty',
+                  'umami',
+                  'unleash-with-postgresql',
+                  'unleash-without-database',
+                  'uptime-kuma',
+                  'vaultwarden',
+                  'vikunja',
+                  'weblate',
+                  'whoogle',
+                  'wordpress-with-mariadb',
+                  'wordpress-with-mysql',
+                  'wordpress-without-database',
+                ]) as z.ZodType<ServiceType>,
+                project_uuid: z.string(),
+                server_uuid: z.string(),
+                name: z.string().optional(),
+                description: z.string().optional(),
+                environment_name: z.string().optional(),
+                environment_uuid: z.string().optional(),
+                destination_uuid: z.string().optional(),
+                instant_deploy: z.boolean().optional(),
+                data: z.object({}).passthrough().optional(),
+              })
+              .parse(request.params.arguments);
+            const result = await this.client.createService(args);
+            return {
+              content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+            };
+          }
+          case 'delete_service': {
+            const args = z
+              .object({
+                uuid: z.string(),
+                options: z
+                  .object({
+                    deleteConfigurations: z.boolean().optional(),
+                    deleteVolumes: z.boolean().optional(),
+                    dockerCleanup: z.boolean().optional(),
+                    deleteConnectedNetworks: z.boolean().optional(),
+                  })
+                  .optional(),
+              })
+              .parse(request.params.arguments);
+            const result = await this.client.deleteService(args.uuid, args.options);
+            return {
+              content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+            };
+          }
+          default:
+            throw new Error(`Unknown tool: ${request.params.name}`);
+        }
       } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-        return {
-          content: [{ type: 'text', text: errorMessage }],
-          isError: true,
-        };
+        if (error instanceof z.ZodError) {
+          throw new Error(`Invalid input: ${JSON.stringify(error.errors)}`);
+        }
+        throw error;
       }
     });
-
-    this.server.tool(
-      'get_project',
-      'Get details about a specific Coolify project',
-      { uuid: z.string().describe('UUID of the project to get details for') },
-      async (params) => {
-        try {
-          const project = await this.client.getProject(params.uuid);
-          return {
-            content: [{ type: 'text', text: JSON.stringify(project) }],
-            isError: false,
-          };
-        } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-          return {
-            content: [{ type: 'text', text: errorMessage }],
-            isError: true,
-          };
-        }
-      },
-    );
-
-    this.server.tool(
-      'create_project',
-      'Create a new Coolify project',
-      {
-        name: z.string().describe('Name of the project'),
-        description: z.string().optional().describe('Optional description of the project'),
-      },
-      async (params) => {
-        try {
-          const result = await this.client.createProject(params);
-          return {
-            content: [{ type: 'text', text: JSON.stringify(result) }],
-            isError: false,
-          };
-        } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-          return {
-            content: [{ type: 'text', text: errorMessage }],
-            isError: true,
-          };
-        }
-      },
-    );
-
-    this.server.tool(
-      'update_project',
-      'Update an existing Coolify project',
-      {
-        uuid: z.string().describe('UUID of the project to update'),
-        name: z.string().optional().describe('New name for the project'),
-        description: z.string().optional().describe('New description for the project'),
-      },
-      async (params) => {
-        try {
-          const { uuid, ...updateData } = params;
-          const result = await this.client.updateProject(uuid, updateData);
-          return {
-            content: [{ type: 'text', text: JSON.stringify(result) }],
-            isError: false,
-          };
-        } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-          return {
-            content: [{ type: 'text', text: errorMessage }],
-            isError: true,
-          };
-        }
-      },
-    );
-
-    this.server.tool(
-      'delete_project',
-      'Delete a Coolify project',
-      { uuid: z.string().describe('UUID of the project to delete') },
-      async (params) => {
-        try {
-          const result = await this.client.deleteProject(params.uuid);
-          return {
-            content: [{ type: 'text', text: JSON.stringify(result) }],
-            isError: false,
-          };
-        } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-          return {
-            content: [{ type: 'text', text: errorMessage }],
-            isError: true,
-          };
-        }
-      },
-    );
-
-    this.server.tool(
-      'get_project_environment',
-      'Get details about a specific environment in a project',
-      {
-        project_uuid: z.string().describe('UUID of the project'),
-        environment_name_or_uuid: z.string().describe('Name or UUID of the environment'),
-      },
-      async (params) => {
-        try {
-          const environment = await this.client.getProjectEnvironment(
-            params.project_uuid,
-            params.environment_name_or_uuid,
-          );
-          return {
-            content: [{ type: 'text', text: JSON.stringify(environment) }],
-            isError: false,
-          };
-        } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-          return {
-            content: [{ type: 'text', text: errorMessage }],
-            isError: true,
-          };
-        }
-      },
-    );
-
-    this.server.tool('list_databases', 'List all databases', {}, async () => {
-      try {
-        const databases = await this.client.listDatabases();
-        return {
-          content: [{ type: 'text', text: JSON.stringify(databases) }],
-          isError: false,
-        };
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-        return {
-          content: [{ type: 'text', text: errorMessage }],
-          isError: true,
-        };
-      }
-    });
-
-    this.server.tool(
-      'get_database',
-      'Get details about a specific database',
-      { uuid: z.string().describe('UUID of the database to get details for') },
-      async (params) => {
-        try {
-          const database = await this.client.getDatabase(params.uuid);
-          return {
-            content: [{ type: 'text', text: JSON.stringify(database) }],
-            isError: false,
-          };
-        } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-          return {
-            content: [{ type: 'text', text: errorMessage }],
-            isError: true,
-          };
-        }
-      },
-    );
-
-    this.server.tool(
-      'update_database',
-      'Update an existing database',
-      {
-        uuid: z.string().describe('UUID of the database to update'),
-        name: z.string().optional().describe('New name for the database'),
-        description: z.string().optional().describe('New description for the database'),
-        image: z.string().optional().describe('New Docker image for the database'),
-        is_public: z.boolean().optional().describe('Whether the database should be public'),
-        public_port: z.number().optional().describe('Public port for the database'),
-        limits_memory: z.string().optional().describe('Memory limit (e.g., "512M", "1G")'),
-        limits_memory_swap: z.string().optional().describe('Memory swap limit'),
-        limits_memory_swappiness: z.number().optional().describe('Memory swappiness (0-100)'),
-        limits_memory_reservation: z.string().optional().describe('Memory reservation'),
-        limits_cpus: z.string().optional().describe('CPU limit (e.g., "0.5", "1")'),
-        limits_cpuset: z.string().optional().describe('CPU set (e.g., "0", "0,1")'),
-        limits_cpu_shares: z.number().optional().describe('CPU shares (relative weight)'),
-        // Database-specific configuration
-        postgres_user: z.string().optional().describe('PostgreSQL user'),
-        postgres_password: z.string().optional().describe('PostgreSQL password'),
-        postgres_db: z.string().optional().describe('PostgreSQL database name'),
-        postgres_initdb_args: z.string().optional().describe('PostgreSQL initdb arguments'),
-        postgres_host_auth_method: z.string().optional().describe('PostgreSQL host auth method'),
-        postgres_conf: z.string().optional().describe('PostgreSQL configuration'),
-        clickhouse_admin_user: z.string().optional().describe('Clickhouse admin user'),
-        clickhouse_admin_password: z.string().optional().describe('Clickhouse admin password'),
-        dragonfly_password: z.string().optional().describe('Dragonfly password'),
-        redis_password: z.string().optional().describe('Redis password'),
-        redis_conf: z.string().optional().describe('Redis configuration'),
-        keydb_password: z.string().optional().describe('KeyDB password'),
-        keydb_conf: z.string().optional().describe('KeyDB configuration'),
-        mariadb_conf: z.string().optional().describe('MariaDB configuration'),
-        mariadb_root_password: z.string().optional().describe('MariaDB root password'),
-        mariadb_user: z.string().optional().describe('MariaDB user'),
-        mariadb_password: z.string().optional().describe('MariaDB password'),
-        mariadb_database: z.string().optional().describe('MariaDB database name'),
-        mongo_conf: z.string().optional().describe('MongoDB configuration'),
-        mongo_initdb_root_username: z.string().optional().describe('MongoDB root username'),
-        mongo_initdb_root_password: z.string().optional().describe('MongoDB root password'),
-        mongo_initdb_database: z.string().optional().describe('MongoDB initial database'),
-        mysql_root_password: z.string().optional().describe('MySQL root password'),
-        mysql_password: z.string().optional().describe('MySQL password'),
-        mysql_user: z.string().optional().describe('MySQL user'),
-        mysql_database: z.string().optional().describe('MySQL database name'),
-      },
-      async (params) => {
-        try {
-          const { uuid, ...updateData } = params;
-          const result = await this.client.updateDatabase(uuid, updateData);
-          return {
-            content: [{ type: 'text', text: JSON.stringify(result) }],
-            isError: false,
-          };
-        } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-          return {
-            content: [{ type: 'text', text: errorMessage }],
-            isError: true,
-          };
-        }
-      },
-    );
-
-    this.server.tool(
-      'delete_database',
-      'Delete a database',
-      {
-        uuid: z.string().describe('UUID of the database to delete'),
-        deleteConfigurations: z.boolean().optional().describe('Whether to delete configurations'),
-        deleteVolumes: z.boolean().optional().describe('Whether to delete volumes'),
-        dockerCleanup: z.boolean().optional().describe('Whether to run docker cleanup'),
-        deleteConnectedNetworks: z
-          .boolean()
-          .optional()
-          .describe('Whether to delete connected networks'),
-      },
-      async (params) => {
-        try {
-          const { uuid, ...options } = params;
-          const result = await this.client.deleteDatabase(uuid, options);
-          return {
-            content: [{ type: 'text', text: JSON.stringify(result) }],
-            isError: false,
-          };
-        } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-          return {
-            content: [{ type: 'text', text: errorMessage }],
-            isError: true,
-          };
-        }
-      },
-    );
-
-    this.server.tool(
-      'deploy_application',
-      'Deploy an application using its UUID',
-      {
-        uuid: z.string().describe('UUID of the application to deploy'),
-      },
-      async (params) => {
-        try {
-          const deployment = await this.client.deployApplication(params.uuid);
-          return {
-            content: [{ type: 'text', text: JSON.stringify(deployment) }],
-            isError: false,
-          };
-        } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-          return {
-            content: [{ type: 'text', text: errorMessage }],
-            isError: true,
-          };
-        }
-      },
-    );
-
-    this.server.tool('list_services', 'List all services', {}, async () => {
-      try {
-        const services = await this.client.listServices();
-        return {
-          content: [{ type: 'text', text: JSON.stringify(services) }],
-          isError: false,
-        };
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-        return {
-          content: [{ type: 'text', text: errorMessage }],
-          isError: true,
-        };
-      }
-    });
-
-    this.server.tool(
-      'get_service',
-      'Get details about a specific service',
-      { uuid: z.string().describe('UUID of the service to get details for') },
-      async (params) => {
-        try {
-          const service = await this.client.getService(params.uuid);
-          return {
-            content: [{ type: 'text', text: JSON.stringify(service) }],
-            isError: false,
-          };
-        } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-          return {
-            content: [{ type: 'text', text: errorMessage }],
-            isError: true,
-          };
-        }
-      },
-    );
-
-    this.server.tool(
-      'create_service',
-      'Create a new service',
-      {
-        type: z
-          .enum([
-            'activepieces',
-            'appsmith',
-            'appwrite',
-            'authentik',
-            'babybuddy',
-            'budge',
-            'changedetection',
-            'chatwoot',
-            'classicpress-with-mariadb',
-            'classicpress-with-mysql',
-            'classicpress-without-database',
-            'cloudflared',
-            'code-server',
-            'dashboard',
-            'directus',
-            'directus-with-postgresql',
-            'docker-registry',
-            'docuseal',
-            'docuseal-with-postgres',
-            'dokuwiki',
-            'duplicati',
-            'emby',
-            'embystat',
-            'fider',
-            'filebrowser',
-            'firefly',
-            'formbricks',
-            'ghost',
-            'gitea',
-            'gitea-with-mariadb',
-            'gitea-with-mysql',
-            'gitea-with-postgresql',
-            'glance',
-            'glances',
-            'glitchtip',
-            'grafana',
-            'grafana-with-postgresql',
-            'grocy',
-            'heimdall',
-            'homepage',
-            'jellyfin',
-            'kuzzle',
-            'listmonk',
-            'logto',
-            'mediawiki',
-            'meilisearch',
-            'metabase',
-            'metube',
-            'minio',
-            'moodle',
-            'n8n',
-            'n8n-with-postgresql',
-            'next-image-transformation',
-            'nextcloud',
-            'nocodb',
-            'odoo',
-            'openblocks',
-            'pairdrop',
-            'penpot',
-            'phpmyadmin',
-            'pocketbase',
-            'posthog',
-            'reactive-resume',
-            'rocketchat',
-            'shlink',
-            'slash',
-            'snapdrop',
-            'statusnook',
-            'stirling-pdf',
-            'supabase',
-            'syncthing',
-            'tolgee',
-            'trigger',
-            'trigger-with-external-database',
-            'twenty',
-            'umami',
-            'unleash-with-postgresql',
-            'unleash-without-database',
-            'uptime-kuma',
-            'vaultwarden',
-            'vikunja',
-            'weblate',
-            'whoogle',
-            'wordpress-with-mariadb',
-            'wordpress-with-mysql',
-            'wordpress-without-database',
-          ])
-          .describe('Type of service to create'),
-        name: z.string().optional().describe('Name for the service'),
-        description: z.string().optional().describe('Description of the service'),
-        project_uuid: z.string().describe('UUID of the project to create the service in'),
-        environment_name: z.string().optional().describe('Name of the environment'),
-        environment_uuid: z.string().optional().describe('UUID of the environment'),
-        server_uuid: z.string().describe('UUID of the server to deploy the service on'),
-        destination_uuid: z.string().optional().describe('UUID of the destination'),
-        instant_deploy: z
-          .boolean()
-          .optional()
-          .describe('Whether to deploy the service immediately'),
-      },
-      async (params) => {
-        try {
-          const result = await this.client.createService(params as CreateServiceRequest);
-          return {
-            content: [{ type: 'text', text: JSON.stringify(result) }],
-            isError: false,
-          };
-        } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-          return {
-            content: [{ type: 'text', text: errorMessage }],
-            isError: true,
-          };
-        }
-      },
-    );
-
-    this.server.tool(
-      'delete_service',
-      'Delete a service',
-      {
-        uuid: z.string().describe('UUID of the service to delete'),
-        deleteConfigurations: z.boolean().optional().describe('Whether to delete configurations'),
-        deleteVolumes: z.boolean().optional().describe('Whether to delete volumes'),
-        dockerCleanup: z.boolean().optional().describe('Whether to run docker cleanup'),
-        deleteConnectedNetworks: z
-          .boolean()
-          .optional()
-          .describe('Whether to delete connected networks'),
-      },
-      async (params) => {
-        try {
-          const { uuid, ...options } = params;
-          const result = await this.client.deleteService(uuid, options);
-          return {
-            content: [{ type: 'text', text: JSON.stringify(result) }],
-            isError: false,
-          };
-        } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-          return {
-            content: [{ type: 'text', text: errorMessage }],
-            isError: true,
-          };
-        }
-      },
-    );
-
-    // End of tool definitions
   }
 
   async start(transport: Transport): Promise<void> {

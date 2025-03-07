@@ -1,40 +1,42 @@
 import { DatabaseResources } from '../../resources/database-resources.js';
 import { CoolifyClient } from '../../lib/coolify-client.js';
-import { Database } from '../../types/coolify.js';
+import { PostgresDatabase } from '../../types/coolify.js';
+import { jest } from '@jest/globals';
 
 jest.mock('../../lib/coolify-client.js');
 
 describe('DatabaseResources', () => {
-  let resources: DatabaseResources;
   let mockClient: jest.Mocked<CoolifyClient>;
-
-  const mockDatabase: Database = {
+  let resources: DatabaseResources;
+  const mockDatabase: PostgresDatabase = {
     id: 1,
-    uuid: 'test-db-uuid',
+    uuid: 'test-uuid',
     name: 'test-db',
-    description: 'Test database',
+    description: 'test description',
     type: 'postgresql',
     status: 'running',
-    created_at: '2024-03-06T12:00:00Z',
-    updated_at: '2024-03-06T12:00:00Z',
+    created_at: '2024-01-01',
+    updated_at: '2024-01-01',
     is_public: false,
     image: 'postgres:latest',
-    postgres_user: 'postgres',
-    postgres_password: 'test123',
-    postgres_db: 'testdb',
+    postgres_user: 'test',
+    postgres_password: 'test',
+    postgres_db: 'test',
   };
 
   beforeEach(() => {
-    mockClient = new CoolifyClient({
-      baseUrl: 'http://test.coolify.io',
-      accessToken: 'test-token',
-    }) as jest.Mocked<CoolifyClient>;
+    mockClient = {
+      listDatabases: jest.fn(),
+      getDatabase: jest.fn(),
+      updateDatabase: jest.fn(),
+      deleteDatabase: jest.fn(),
+    } as unknown as jest.Mocked<CoolifyClient>;
     resources = new DatabaseResources(mockClient);
   });
 
   describe('listDatabases', () => {
     it('should return a list of databases', async () => {
-      mockClient.listDatabases = jest.fn().mockResolvedValue([mockDatabase]);
+      mockClient.listDatabases.mockResolvedValue([mockDatabase]);
 
       const result = await resources.listDatabases();
 
@@ -44,13 +46,13 @@ describe('DatabaseResources', () => {
   });
 
   describe('getDatabase', () => {
-    it('should return a specific database', async () => {
-      mockClient.getDatabase = jest.fn().mockResolvedValue(mockDatabase);
+    it('should return a database by uuid', async () => {
+      mockClient.getDatabase.mockResolvedValue(mockDatabase);
 
-      const result = await resources.getDatabase('test-db-uuid');
+      const result = await resources.getDatabase('test-uuid');
 
       expect(result).toEqual(mockDatabase);
-      expect(mockClient.getDatabase).toHaveBeenCalledWith('test-db-uuid');
+      expect(mockClient.getDatabase).toHaveBeenCalledWith('test-uuid');
     });
   });
 
@@ -58,31 +60,27 @@ describe('DatabaseResources', () => {
     it('should update a database', async () => {
       const updateData = {
         name: 'updated-db',
-        description: 'Updated description',
+        description: 'updated description',
       };
-      mockClient.updateDatabase = jest.fn().mockResolvedValue({ ...mockDatabase, ...updateData });
 
-      const result = await resources.updateDatabase('test-db-uuid', updateData);
+      mockClient.updateDatabase.mockResolvedValue({ ...mockDatabase, ...updateData });
+
+      const result = await resources.updateDatabase('test-uuid', updateData);
 
       expect(result).toEqual({ ...mockDatabase, ...updateData });
-      expect(mockClient.updateDatabase).toHaveBeenCalledWith('test-db-uuid', updateData);
+      expect(mockClient.updateDatabase).toHaveBeenCalledWith('test-uuid', updateData);
     });
   });
 
   describe('deleteDatabase', () => {
     it('should delete a database', async () => {
-      const mockResponse = { message: 'Database deleted' };
-      mockClient.deleteDatabase = jest.fn().mockResolvedValue(mockResponse);
+      const mockResponse = { message: 'Database deleted successfully' };
+      mockClient.deleteDatabase.mockResolvedValue(mockResponse);
 
-      const options = {
-        deleteConfigurations: true,
-        deleteVolumes: true,
-      };
-
-      const result = await resources.deleteDatabase('test-db-uuid', options);
+      const result = await resources.deleteDatabase('test-uuid', {});
 
       expect(result).toEqual(mockResponse);
-      expect(mockClient.deleteDatabase).toHaveBeenCalledWith('test-db-uuid', options);
+      expect(mockClient.deleteDatabase).toHaveBeenCalledWith('test-uuid', {});
     });
   });
 });

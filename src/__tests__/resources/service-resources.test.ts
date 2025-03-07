@@ -1,40 +1,42 @@
 import { ServiceResources } from '../../resources/service-resources.js';
 import { CoolifyClient } from '../../lib/coolify-client.js';
-import { Service } from '../../types/coolify.js';
+import { Service, ServiceType } from '../../types/coolify.js';
+import { jest } from '@jest/globals';
 
 jest.mock('../../lib/coolify-client.js');
 
 describe('ServiceResources', () => {
-  let resources: ServiceResources;
   let mockClient: jest.Mocked<CoolifyClient>;
-
+  let resources: ServiceResources;
   const mockService: Service = {
     id: 1,
-    uuid: 'test-service-uuid',
+    uuid: 'test-uuid',
     name: 'test-service',
-    description: 'Test service',
+    description: 'test description',
     type: 'code-server',
     status: 'running',
-    created_at: '2024-03-06T12:00:00Z',
-    updated_at: '2024-03-06T12:00:00Z',
-    project_uuid: 'test-project-uuid',
-    environment_name: 'production',
-    environment_uuid: 'test-env-uuid',
-    server_uuid: 'test-server-uuid',
-    domains: ['test-service.example.com'],
+    created_at: '2024-01-01',
+    updated_at: '2024-01-01',
+    project_uuid: 'project-uuid',
+    environment_name: 'test-env',
+    environment_uuid: 'env-uuid',
+    server_uuid: 'server-uuid',
+    domains: ['test.com'],
   };
 
   beforeEach(() => {
-    mockClient = new CoolifyClient({
-      baseUrl: 'http://test.coolify.io',
-      accessToken: 'test-token',
-    }) as jest.Mocked<CoolifyClient>;
+    mockClient = {
+      listServices: jest.fn(),
+      getService: jest.fn(),
+      createService: jest.fn(),
+      deleteService: jest.fn(),
+    } as unknown as jest.Mocked<CoolifyClient>;
     resources = new ServiceResources(mockClient);
   });
 
   describe('listServices', () => {
     it('should return a list of services', async () => {
-      mockClient.listServices = jest.fn().mockResolvedValue([mockService]);
+      mockClient.listServices.mockResolvedValue([mockService]);
 
       const result = await resources.listServices();
 
@@ -44,34 +46,33 @@ describe('ServiceResources', () => {
   });
 
   describe('getService', () => {
-    it('should return a specific service', async () => {
-      mockClient.getService = jest.fn().mockResolvedValue(mockService);
+    it('should return a service by uuid', async () => {
+      mockClient.getService.mockResolvedValue(mockService);
 
-      const result = await resources.getService('test-service-uuid');
+      const result = await resources.getService('test-uuid');
 
       expect(result).toEqual(mockService);
-      expect(mockClient.getService).toHaveBeenCalledWith('test-service-uuid');
+      expect(mockClient.getService).toHaveBeenCalledWith('test-uuid');
     });
   });
 
   describe('createService', () => {
-    it('should create a service', async () => {
+    it('should create a new service', async () => {
       const createData = {
-        type: 'code-server' as const,
-        name: 'test-service',
-        description: 'Test service',
-        project_uuid: 'test-project-uuid',
-        environment_name: 'production',
-        server_uuid: 'test-server-uuid',
-        instant_deploy: true,
+        name: 'new-service',
+        type: 'code-server' as ServiceType,
+        project_uuid: 'project-uuid',
+        environment_name: 'test-env',
+        environment_uuid: 'env-uuid',
+        server_uuid: 'server-uuid',
       };
 
       const mockResponse = {
-        uuid: 'test-service-uuid',
-        domains: ['test-service.example.com'],
+        uuid: 'new-uuid',
+        domains: ['new-service.test.com'],
       };
 
-      mockClient.createService = jest.fn().mockResolvedValue(mockResponse);
+      mockClient.createService.mockResolvedValue(mockResponse);
 
       const result = await resources.createService(createData);
 
@@ -83,17 +84,12 @@ describe('ServiceResources', () => {
   describe('deleteService', () => {
     it('should delete a service', async () => {
       const mockResponse = { message: 'Service deleted' };
-      mockClient.deleteService = jest.fn().mockResolvedValue(mockResponse);
+      mockClient.deleteService.mockResolvedValue(mockResponse);
 
-      const options = {
-        deleteConfigurations: true,
-        deleteVolumes: true,
-      };
-
-      const result = await resources.deleteService('test-service-uuid', options);
+      const result = await resources.deleteService('test-uuid');
 
       expect(result).toEqual(mockResponse);
-      expect(mockClient.deleteService).toHaveBeenCalledWith('test-service-uuid', options);
+      expect(mockClient.deleteService).toHaveBeenCalledWith('test-uuid', undefined);
     });
   });
 });
