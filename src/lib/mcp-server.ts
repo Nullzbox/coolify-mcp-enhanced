@@ -37,11 +37,12 @@ export class CoolifyMcpServer {
   private serviceResources: ServiceResources;
 
   constructor(config: CoolifyConfig) {
+    console.debug('[CoolifyMCP] Initializing server with config:', JSON.stringify(config, null, 2));
     this.client = new CoolifyClient(config);
     this.server = new Server(
       {
         name: 'coolify',
-        version: '0.1.16',
+        version: '0.1.17',
       },
       {
         capabilities: {
@@ -79,7 +80,10 @@ export class CoolifyMcpServer {
   }
 
   private setupHandlers(): void {
+    console.debug('[CoolifyMCP] Setting up request handlers');
+    
     this.server.setRequestHandler(ListToolsRequestSchema, async () => {
+      console.debug('[CoolifyMCP] Handling ListTools request');
       return {
         tools: [
           {
@@ -616,8 +620,17 @@ export class CoolifyMcpServer {
   }
 
   async start(transport: Transport): Promise<void> {
-    await this.client.validateConnection();
-    await this.server.connect(transport);
+    console.debug('[CoolifyMCP] Starting server...');
+    try {
+      console.debug('[CoolifyMCP] Validating connection...');
+      await this.client.validateConnection();
+      console.debug('[CoolifyMCP] Connection validated, connecting transport...');
+      await this.server.connect(transport);
+      console.debug('[CoolifyMCP] Server started successfully');
+    } catch (error) {
+      console.error('[CoolifyMCP] Error starting server:', error);
+      throw error;
+    }
   }
 
   async list_servers(): Promise<ServerInfo[]> {
