@@ -41,7 +41,7 @@ export class CoolifyMcpServer {
     this.server = new Server(
       {
         name: 'coolify',
-        version: '1.6.1',
+        version: '0.1.16',
       },
       {
         capabilities: {
