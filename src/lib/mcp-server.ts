@@ -45,7 +45,28 @@ export class CoolifyMcpServer {
       },
       {
         capabilities: {
-          tools: true,
+          tools: {
+            list_servers: { enabled: true },
+            get_server: { enabled: true },
+            get_server_resources: { enabled: true },
+            get_server_domains: { enabled: true },
+            validate_server: { enabled: true },
+            list_projects: { enabled: true },
+            get_project: { enabled: true },
+            create_project: { enabled: true },
+            update_project: { enabled: true },
+            delete_project: { enabled: true },
+            get_project_environment: { enabled: true },
+            list_databases: { enabled: true },
+            get_database: { enabled: true },
+            update_database: { enabled: true },
+            delete_database: { enabled: true },
+            deploy_application: { enabled: true },
+            list_services: { enabled: true },
+            get_service: { enabled: true },
+            create_service: { enabled: true },
+            delete_service: { enabled: true }
+          },
         },
       },
     );
