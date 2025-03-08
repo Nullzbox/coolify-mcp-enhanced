@@ -1,9 +1,9 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
-import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
 import { CoolifyClient } from './coolify-client.js';
-import {
-  CoolifyConfig,
+import debug from 'debug';
+import { z } from 'zod';
+import type {
   ServerInfo,
   ServerResources,
   ServerDomain,
@@ -18,16 +18,7 @@ import {
   Service,
   CreateServiceRequest,
   DeleteServiceOptions,
-  ServiceType,
 } from '../types/coolify.js';
-import { z } from 'zod';
-import {
-  DatabaseResources,
-  DeploymentResources,
-  ApplicationResources,
-  ServiceResources,
-} from '../resources/index.js';
-import debug from 'debug';
 
 const log = debug('coolify:mcp');
 
@@ -123,10 +114,6 @@ const serviceTypes = [
 
 export class CoolifyMcpServer extends McpServer {
   private client: CoolifyClient;
-  private databaseResources: DatabaseResources;
-  private deploymentResources: DeploymentResources;
-  private applicationResources: ApplicationResources;
-  private serviceResources: ServiceResources;
 
   constructor(config: { baseUrl: string; accessToken: string }) {
     super({
@@ -135,10 +122,6 @@ export class CoolifyMcpServer extends McpServer {
     });
     log('Initializing server with config: %o', config);
     this.client = new CoolifyClient(config);
-    this.databaseResources = new DatabaseResources(this.client);
-    this.deploymentResources = new DeploymentResources(this.client);
-    this.applicationResources = new ApplicationResources(this.client);
-    this.serviceResources = new ServiceResources(this.client);
     this.setupTools();
   }
 
