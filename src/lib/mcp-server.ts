@@ -45,7 +45,7 @@ export class CoolifyMcpServer {
       },
       {
         capabilities: {
-          tools: {},
+          tools: true,
         },
       },
     );
