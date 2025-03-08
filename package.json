@@ -1,7 +1,7 @@
 {
   "name": "@masonator/coolify-mcp",
   "scope": "@masonator",
-  "version": "0.1.18",
+  "version": "0.2.0",
   "description": "MCP server implementation for Coolify",
   "type": "module",
   "main": "./dist/index.js",
