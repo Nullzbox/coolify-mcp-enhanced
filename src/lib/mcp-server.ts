@@ -118,30 +118,14 @@ export class CoolifyMcpServer extends McpServer {
   constructor(config: { baseUrl: string; accessToken: string }) {
     super({
       name: 'coolify',
-      version: '0.1.18',
-      capabilities: {
-        tools: {}
-      }
+      version: '0.1.18'
     });
+    
     log('Initializing server with config: %o', config);
     this.client = new CoolifyClient(config);
-  }
 
-  async connect(transport: Transport): Promise<void> {
-    log('Starting server...');
-    log('Validating connection...');
-    await this.client.validateConnection();
-    
-    this.setupTools();
-    
-    await super.connect(transport);
-    log('Server started successfully');
-  }
-
-  private setupTools(): void {
-    log('Setting up tools');
-    
-    this.tool('list_servers', 'List all Coolify servers', {}, async (_args, _extra) => {
+    // Register all tools immediately
+    this.tool('list_servers', 'List all Coolify servers', {}, async () => {
       const servers = await this.client.listServers();
       return {
         content: [{ type: 'text', text: JSON.stringify(servers, null, 2) }]
@@ -149,8 +133,8 @@ export class CoolifyMcpServer extends McpServer {
     });
 
     this.tool('get_server', 'Get details about a specific Coolify server', {
-      uuid: z.string()
-    }, async (args, _extra) => {
+      uuid: z.string().describe('UUID of the server to get details for')
+    }, async (args) => {
       const server = await this.client.getServer(args.uuid);
       return {
         content: [{ type: 'text', text: JSON.stringify(server, null, 2) }]
@@ -338,6 +322,14 @@ export class CoolifyMcpServer extends McpServer {
         content: [{ type: 'text', text: JSON.stringify(result, null, 2) }]
       };
     });
+  }
+
+  async connect(transport: Transport): Promise<void> {
+    log('Starting server...');
+    log('Validating connection...');
+    await this.client.validateConnection();
+    await super.connect(transport);
+    log('Server started successfully');
   }
 
   async list_servers(): Promise<ServerInfo[]> {
