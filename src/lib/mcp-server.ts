@@ -124,7 +124,12 @@ export class CoolifyMcpServer extends McpServer {
     log('Initializing server with config: %o', config);
     this.client = new CoolifyClient(config);
 
-    // Register all tools immediately
+    // Register capabilities first
+    this.server.registerCapabilities({
+      tools: {}
+    });
+
+    // Then register all tools
     this.tool('list_servers', 'List all Coolify servers', {}, async () => {
       const servers = await this.client.listServers();
       return {
