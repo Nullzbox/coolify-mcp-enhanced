@@ -118,7 +118,10 @@ export class CoolifyMcpServer extends McpServer {
   constructor(config: { baseUrl: string; accessToken: string }) {
     super({
       name: 'coolify',
-      version: '0.1.18'
+      version: '0.1.18',
+      capabilities: {
+        tools: true
+      }
     });
     log('Initializing server with config: %o', config);
     this.client = new CoolifyClient(config);
