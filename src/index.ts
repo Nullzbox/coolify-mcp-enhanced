@@ -19,7 +19,7 @@ async function main(): Promise<void> {
   const server = new CoolifyMcpServer(config);
   const transport = new StdioServerTransport();
 
-  await server.start(transport);
+  await server.connect(transport);
 }
 
 main().catch((error) => {

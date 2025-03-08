@@ -41,13 +41,13 @@
   "author": "Stuart Mason",
   "license": "MIT",
   "dependencies": {
-    "@masonator/coolify-mcp": "^0.1.12",
     "@modelcontextprotocol/sdk": "^1.6.1",
     "@modelcontextprotocol/server-github": "^2025.1.23",
     "reflect-metadata": "^0.2.2",
     "zod": "^3.24.2"
   },
   "devDependencies": {
+    "@types/debug": "^4.1.12",
     "@types/jest": "^29.5.14",
     "@types/node": "^20.17.23",
     "@typescript-eslint/eslint-plugin": "^7.18.0",
