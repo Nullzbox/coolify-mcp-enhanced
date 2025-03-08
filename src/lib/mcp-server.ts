@@ -118,7 +118,10 @@ export class CoolifyMcpServer extends McpServer {
   constructor(config: { baseUrl: string; accessToken: string }) {
     super({
       name: 'coolify',
-      version: '0.1.18'
+      version: '0.1.18',
+      capabilities: {
+        tools: {}
+      }
     });
     log('Initializing server with config: %o', config);
     this.client = new CoolifyClient(config);
@@ -129,12 +132,6 @@ export class CoolifyMcpServer extends McpServer {
     log('Validating connection...');
     await this.client.validateConnection();
     
-    // Register capabilities before setting up tools
-    this.server.registerCapabilities({
-      tools: {}
-    });
-    
-    // Set up tools after registering capabilities
     this.setupTools();
     
     await super.connect(transport);
