@@ -341,10 +341,49 @@ export class CoolifyMcpServer extends McpServer {
     this.tool('get_application', 'Get details about a specific Coolify application', {
       uuid: z.string()
     }, async (args, _extra) => {
-      const application = await this.client.getApplication(args.uuid);
-      return {
-        content: [{ type: 'text', text: JSON.stringify(application, null, 2) }]
-      };
+      try {
+        const application = await this.client.getApplication(args.uuid);
+        
+        // Limit response size by removing very large fields if present
+        const response: any = {
+          ...application
+        };
+        
+        // Clean up potentially large fields
+        if (response.docker_compose_raw) response.docker_compose_raw = '[Truncated - too large]';
+        if (response.docker_compose) response.docker_compose = '[Truncated - too large]';
+        if (response.custom_labels && response.custom_labels.length > 100) {
+          response.custom_labels = response.custom_labels.substring(0, 100) + '...[Truncated]';
+        }
+        if (response.environment_variables) {
+          response.environment_variables = '[Environment variables hidden]';
+        }
+        
+        return {
+          content: [{ 
+            type: 'text', 
+            text: JSON.stringify({
+              success: true,
+              data: response
+            }, null, 2) 
+          }]
+        };
+      } catch (error: any) {
+        return {
+          content: [{ 
+            type: 'text', 
+            text: JSON.stringify({
+              success: false,
+              error: {
+                message: error?.message || 'Failed to get application',
+                code: error?.code || error?.response?.status || 'UNKNOWN',
+                details: error?.response?.data || null
+              },
+              uuid: args.uuid
+            }, null, 2) 
+          }]
+        };
+      }
     });
 
     this.tool('create_application', 'Create a new Coolify application', {
@@ -423,10 +462,27 @@ export class CoolifyMcpServer extends McpServer {
     this.tool('get_deployments', 'Get deployments for an application', {
       application_uuid: z.string()
     }, async (args, _extra) => {
-      const deployments = await this.client.getDeployments(args.application_uuid);
-      return {
-        content: [{ type: 'text', text: JSON.stringify(deployments, null, 2) }]
-      };
+      try {
+        const deployments = await this.client.getDeployments(args.application_uuid);
+        return {
+          content: [{ type: 'text', text: JSON.stringify(deployments, null, 2) }]
+        };
+      } catch (error: any) {
+        return {
+          content: [{ 
+            type: 'text', 
+            text: JSON.stringify({
+              success: false,
+              error: {
+                message: error?.message || 'Failed to get deployments',
+                code: error?.code || error?.response?.status || 'UNKNOWN',
+                details: error?.response?.data || null
+              },
+              application_uuid: args.application_uuid
+            }, null, 2) 
+          }]
+        };
+      }
     });
 
     this.tool('get_deployment', 'Get details about a specific deployment', {

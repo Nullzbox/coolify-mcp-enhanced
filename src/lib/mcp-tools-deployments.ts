@@ -2,6 +2,50 @@ import { z } from 'zod';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { CoolifyClient } from './coolify-client.js';
 
+// Helper function to properly serialize errors
+function formatError(error: any, operation: string): string {
+  const errorObj = {
+    success: false,
+    operation,
+    error: {
+      message: error?.message || error?.toString() || 'Unknown error',
+      code: error?.code || error?.response?.status || 'UNKNOWN',
+      details: error?.response?.data || null,
+      stack: process.env.NODE_ENV === 'development' ? error?.stack : undefined
+    },
+    timestamp: new Date().toISOString()
+  };
+  
+  return JSON.stringify(errorObj, null, 2);
+}
+
+// Helper to limit response size for large datasets
+function limitResponseSize(data: any[], maxItems: number = 25): any {
+  if (!Array.isArray(data)) return data;
+  
+  const truncated = data.length > maxItems;
+  const items = truncated ? data.slice(0, maxItems) : data;
+  
+  // Return only essential fields for large responses
+  const summary = items.map(item => ({
+    uuid: item.uuid || item.id,
+    name: item.name || item.title || 'N/A',
+    status: item.status,
+    created_at: item.created_at,
+    updated_at: item.updated_at
+  }));
+  
+  return {
+    items: summary,
+    total: data.length,
+    returned: summary.length,
+    truncated,
+    message: truncated 
+      ? `Showing first ${maxItems} of ${data.length} items. Use pagination to see more.`
+      : undefined
+  };
+}
+
 export function registerDeploymentTools(server: McpServer, client: CoolifyClient) {
   // List all deployments
   server.tool('list_deployments', 'List all deployments across all applications', {
@@ -25,11 +69,7 @@ export function registerDeploymentTools(server: McpServer, client: CoolifyClient
       return {
         content: [{
           type: 'text',
-          text: JSON.stringify({
-            success: false,
-            error: error.message,
-            message: 'Failed to list deployments'
-          }, null, 2)
+          text: formatError(error, 'list_deployments')
         }]
       };
     }
