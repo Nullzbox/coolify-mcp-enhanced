@@ -235,11 +235,45 @@ export class CoolifyMcpServer extends McpServer {
       };
     });
 
-    this.tool('list_databases', 'List all Coolify databases', {}, async (_args, _extra) => {
-      const databases = await this.client.listDatabases();
-      return {
-        content: [{ type: 'text', text: JSON.stringify(databases, null, 2) }]
-      };
+    this.tool('list_databases', 'List all Coolify databases (summarized)', {
+      limit: z.number().optional().describe('Maximum number to return (default: 25, max: 100)')
+    }, async (args, _extra) => {
+      try {
+        const databases = await this.client.listDatabases();
+        const limit = Math.min(args?.limit || 25, 100);
+        
+        const limitedDbs = databases.slice(0, limit);
+        const summary = limitedDbs.map((db: any) => ({
+          uuid: db.uuid,
+          name: db.name,
+          type: db.type,
+          status: db.status,
+          created_at: db.created_at
+        }));
+        
+        return {
+          content: [{ 
+            type: 'text', 
+            text: JSON.stringify({
+              success: true,
+              data: summary,
+              count: summary.length,
+              total: databases.length,
+              limited: databases.length > limit
+            }, null, 2) 
+          }]
+        };
+      } catch (error: any) {
+        return {
+          content: [{ 
+            type: 'text', 
+            text: JSON.stringify({
+              success: false,
+              error: error?.message || 'Failed to list databases'
+            }, null, 2) 
+          }]
+        };
+      }
     });
 
     this.tool('get_database', 'Get details about a specific Coolify database', {
@@ -287,11 +321,45 @@ export class CoolifyMcpServer extends McpServer {
       };
     });
 
-    this.tool('list_services', 'List all Coolify services', {}, async (_args, _extra) => {
-      const services = await this.client.listServices();
-      return {
-        content: [{ type: 'text', text: JSON.stringify(services, null, 2) }]
-      };
+    this.tool('list_services', 'List all Coolify services (summarized)', {
+      limit: z.number().optional().describe('Maximum number to return (default: 25, max: 100)')
+    }, async (args, _extra) => {
+      try {
+        const services = await this.client.listServices();
+        const limit = Math.min(args?.limit || 25, 100);
+        
+        const limitedServices = services.slice(0, limit);
+        const summary = limitedServices.map((svc: any) => ({
+          uuid: svc.uuid,
+          name: svc.name,
+          type: svc.type,
+          status: svc.status,
+          created_at: svc.created_at
+        }));
+        
+        return {
+          content: [{ 
+            type: 'text', 
+            text: JSON.stringify({
+              success: true,
+              data: summary,
+              count: summary.length,
+              total: services.length,
+              limited: services.length > limit
+            }, null, 2) 
+          }]
+        };
+      } catch (error: any) {
+        return {
+          content: [{ 
+            type: 'text', 
+            text: JSON.stringify({
+              success: false,
+              error: error?.message || 'Failed to list services'
+            }, null, 2) 
+          }]
+        };
+      }
     });
 
     this.tool('get_service', 'Get details about a specific Coolify service', {
@@ -331,11 +399,64 @@ export class CoolifyMcpServer extends McpServer {
     });
 
     // Application Management Tools
-    this.tool('list_applications', 'List all Coolify applications', {}, async (_args, _extra) => {
-      const applications = await this.client.listApplications();
-      return {
-        content: [{ type: 'text', text: JSON.stringify(applications, null, 2) }]
-      };
+    this.tool('list_applications', 'List all Coolify applications (summarized)', {
+      limit: z.number().optional().describe('Maximum number of applications to return (default: 25, max: 100)'),
+      full: z.boolean().optional().describe('Return full details instead of summary (default: false)')
+    }, async (args, _extra) => {
+      try {
+        const applications = await this.client.listApplications();
+        const limit = Math.min(args?.limit || 25, 100);
+        const returnFull = args?.full || false;
+        
+        // Limit the number of applications
+        const limitedApps = applications.slice(0, limit);
+        
+        // Create summary or return full based on parameter
+        const result = returnFull ? limitedApps : limitedApps.map((app: any) => ({
+          uuid: app.uuid,
+          name: app.name,
+          status: app.status,
+          fqdn: app.fqdn,
+          git_repository: app.git_repository,
+          git_branch: app.git_branch,
+          created_at: app.created_at,
+          // Only essential fields for summary
+        }));
+        
+        return {
+          content: [{ 
+            type: 'text', 
+            text: JSON.stringify({
+              success: true,
+              data: result,
+              pagination: {
+                total: applications.length,
+                returned: result.length,
+                limited: applications.length > limit,
+                message: applications.length > limit 
+                  ? `Showing first ${limit} of ${applications.length} applications. Use limit parameter to see more.`
+                  : `Showing all ${applications.length} applications`
+              },
+              hint: returnFull 
+                ? 'Returning full details. Use full:false for summary only.'
+                : 'Returning summary. Use full:true for complete details.'
+            }, null, 2) 
+          }]
+        };
+      } catch (error: any) {
+        return {
+          content: [{ 
+            type: 'text', 
+            text: JSON.stringify({
+              success: false,
+              error: {
+                message: error?.message || 'Failed to list applications',
+                code: error?.code || error?.response?.status || 'UNKNOWN'
+              }
+            }, null, 2) 
+          }]
+        };
+      }
     });
 
     this.tool('get_application', 'Get details about a specific Coolify application', {
@@ -459,13 +580,48 @@ export class CoolifyMcpServer extends McpServer {
     });
 
     // Deployment Management
-    this.tool('get_deployments', 'Get deployments for an application', {
-      application_uuid: z.string()
+    this.tool('get_deployments', 'Get deployments for an application (with pagination)', {
+      application_uuid: z.string().describe('UUID of the application'),
+      skip: z.number().optional().describe('Number of records to skip (default: 0)'),
+      limit: z.number().optional().describe('Maximum number of deployments to return (default: 10, max: 50)')
     }, async (args, _extra) => {
       try {
-        const deployments = await this.client.getDeployments(args.application_uuid);
+        const skip = args.skip || 0;
+        const limit = Math.min(args.limit || 10, 50); // Default 10, max 50
+        
+        const deployments = await this.client.getDeployments(args.application_uuid, skip, limit);
+        
+        // Ensure response is an array
+        const deploymentArray = Array.isArray(deployments) ? deployments : [];
+        
+        // Create a summary for each deployment to reduce size
+        const summary = deploymentArray.map((d: any) => ({
+          id: d.id,
+          uuid: d.uuid,
+          status: d.status,
+          created_at: d.created_at,
+          updated_at: d.updated_at,
+          commit_sha: d.git_commit_sha?.substring(0, 8),
+          message: d.message || d.description,
+          // Only include essential fields
+        }));
+        
         return {
-          content: [{ type: 'text', text: JSON.stringify(deployments, null, 2) }]
+          content: [{ 
+            type: 'text', 
+            text: JSON.stringify({
+              success: true,
+              data: summary,
+              pagination: {
+                skip,
+                limit,
+                count: summary.length,
+                hasMore: summary.length === limit,
+                message: `Showing ${summary.length} deployments (skip: ${skip}, limit: ${limit})`
+              },
+              hint: 'Use skip and limit parameters for pagination. For full deployment details, use get_deployment with specific UUID.'
+            }, null, 2) 
+          }]
         };
       } catch (error: any) {
         return {
@@ -478,7 +634,8 @@ export class CoolifyMcpServer extends McpServer {
                 code: error?.code || error?.response?.status || 'UNKNOWN',
                 details: error?.response?.data || null
               },
-              application_uuid: args.application_uuid
+              application_uuid: args.application_uuid,
+              hint: 'Try using skip:0 and limit:10 parameters'
             }, null, 2) 
           }]
         };
