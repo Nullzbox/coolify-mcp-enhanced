@@ -160,11 +160,35 @@ export class CoolifyClient {
     return this.request<Environment>(`/projects/${projectUuid}/${environmentNameOrUuid}`);
   }
 
+  // Application Control
   async deployApplication(uuid: string): Promise<Deployment> {
-    const response = await this.request<Deployment>(`/applications/${uuid}/deploy`, {
+    // L'endpoint correct est /start, pas /deploy
+    const response = await this.request<Deployment>(`/applications/${uuid}/start`, {
       method: 'POST',
+      body: '{}',
     });
     return response;
+  }
+
+  async stopApplication(uuid: string): Promise<any> {
+    const response = await this.request<any>(`/applications/${uuid}/stop`, {
+      method: 'POST',
+      body: '{}',
+    });
+    return response;
+  }
+
+  async restartApplication(uuid: string): Promise<any> {
+    const response = await this.request<any>(`/applications/${uuid}/restart`, {
+      method: 'POST',
+      body: '{}',
+    });
+    return response;
+  }
+
+  async startApplication(uuid: string): Promise<Deployment> {
+    // Alias pour deployApplication
+    return this.deployApplication(uuid);
   }
 
   async listDatabases(): Promise<Database[]> {
@@ -310,12 +334,81 @@ export class CoolifyClient {
 
   async updateApplicationEnvironmentVariables(
     uuid: string, 
-    variables: EnvironmentVariableUpdate[]
-  ): Promise<{ message: string }> {
-    return this.request<{ message: string }>(`/applications/${uuid}/envs`, {
-      method: 'POST',
-      body: JSON.stringify(variables),
-    });
+    variables: EnvironmentVariableUpdate[] | EnvironmentVariableUpdate
+  ): Promise<{ message: string; results?: any[] }> {
+    // Si c'est un array, on traite chaque variable
+    if (Array.isArray(variables)) {
+      const results = [];
+      for (const variable of variables) {
+        try {
+          // D'abord essayer PATCH (pour update)
+          const patchPayload: any = {
+            key: variable.key,
+            value: variable.value,
+          };
+          if (variable.is_preview !== undefined) patchPayload.is_preview = variable.is_preview;
+          if (variable.is_build_time !== undefined) patchPayload.is_build_time = variable.is_build_time;
+          if (variable.is_literal !== undefined) patchPayload.is_literal = variable.is_literal;
+
+          try {
+            // Essayer de mettre à jour
+            const result = await this.request(`/applications/${uuid}/envs`, {
+              method: 'PATCH',
+              body: JSON.stringify(patchPayload),
+            });
+            results.push({ action: 'updated', ...(result as object) });
+          } catch (patchError: any) {
+            // Si PATCH échoue, essayer POST (pour créer)
+            if (patchError.message && patchError.message.includes('not found')) {
+              const postPayload: any = {
+                key: variable.key,
+                value: variable.value,
+              };
+              if (variable.is_preview !== undefined) postPayload.is_preview = variable.is_preview;
+              if (variable.is_build_time !== undefined) postPayload.is_build_time = variable.is_build_time;
+              if (variable.is_literal !== undefined) postPayload.is_literal = variable.is_literal;
+
+              const result = await this.request(`/applications/${uuid}/envs`, {
+                method: 'POST',
+                body: JSON.stringify(postPayload),
+              });
+              results.push({ action: 'created', ...(result as object) });
+            } else {
+              throw patchError;
+            }
+          }
+        } catch (error: any) {
+          results.push({ error: error.message, key: variable.key });
+        }
+      }
+      return { message: 'Batch operation completed', results };
+    } else {
+      // Si c'est un objet simple, essayer PATCH d'abord, puis POST si ça échoue
+      const payload: any = {
+        key: variables.key,
+        value: variables.value,
+      };
+      if (variables.is_preview !== undefined) payload.is_preview = variables.is_preview;
+      if (variables.is_build_time !== undefined) payload.is_build_time = variables.is_build_time;
+      if (variables.is_literal !== undefined) payload.is_literal = variables.is_literal;
+
+      try {
+        // Essayer PATCH d'abord
+        return await this.request<{ message: string }>(`/applications/${uuid}/envs`, {
+          method: 'PATCH',
+          body: JSON.stringify(payload),
+        });
+      } catch (patchError: any) {
+        // Si PATCH échoue, essayer POST
+        if (patchError.message && patchError.message.includes('not found')) {
+          return await this.request<{ message: string }>(`/applications/${uuid}/envs`, {
+            method: 'POST',
+            body: JSON.stringify(payload),
+          });
+        }
+        throw patchError;
+      }
+    }
   }
 
   // Docker Compose Service Management
