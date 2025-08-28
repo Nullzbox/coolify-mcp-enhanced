@@ -161,9 +161,14 @@ export class CoolifyClient {
   }
 
   // Application Control
-  async deployApplication(uuid: string): Promise<Deployment> {
-    // L'endpoint correct est /start, pas /deploy
-    const response = await this.request<Deployment>(`/applications/${uuid}/start`, {
+  async deployApplication(uuid: string, options?: { force?: boolean; instant_deploy?: boolean }): Promise<Deployment> {
+    const queryParams = new URLSearchParams();
+    if (options?.force) queryParams.set('force', 'true');
+    if (options?.instant_deploy) queryParams.set('instant_deploy', 'true');
+    const queryString = queryParams.toString();
+    const url = queryString ? `/applications/${uuid}/start?${queryString}` : `/applications/${uuid}/start`;
+    
+    const response = await this.request<Deployment>(url, {
       method: 'POST',
       body: '{}',
     });
@@ -186,9 +191,9 @@ export class CoolifyClient {
     return response;
   }
 
-  async startApplication(uuid: string): Promise<Deployment> {
+  async startApplication(uuid: string, options?: { force?: boolean; instant_deploy?: boolean }): Promise<Deployment> {
     // Alias pour deployApplication
-    return this.deployApplication(uuid);
+    return this.deployApplication(uuid, options);
   }
 
   async listDatabases(): Promise<Database[]> {
@@ -239,6 +244,25 @@ export class CoolifyClient {
     });
   }
 
+  // Database Control Methods
+  async startDatabase(uuid: string): Promise<{ message: string }> {
+    return this.request<{ message: string }>(`/databases/${uuid}/start`, {
+      method: 'GET',
+    });
+  }
+
+  async stopDatabase(uuid: string): Promise<{ message: string }> {
+    return this.request<{ message: string }>(`/databases/${uuid}/stop`, {
+      method: 'GET',
+    });
+  }
+
+  async restartDatabase(uuid: string): Promise<{ message: string }> {
+    return this.request<{ message: string }>(`/databases/${uuid}/restart`, {
+      method: 'GET',
+    });
+  }
+
   async listServices(): Promise<Service[]> {
     return this.request<Service[]>('/services');
   }
@@ -276,6 +300,25 @@ export class CoolifyClient {
 
     return this.request<{ message: string }>(url, {
       method: 'DELETE',
+    });
+  }
+
+  // Service Control Methods
+  async startService(uuid: string): Promise<{ message: string }> {
+    return this.request<{ message: string }>(`/services/${uuid}/start`, {
+      method: 'GET',
+    });
+  }
+
+  async stopService(uuid: string): Promise<{ message: string }> {
+    return this.request<{ message: string }>(`/services/${uuid}/stop`, {
+      method: 'GET',
+    });
+  }
+
+  async restartService(uuid: string): Promise<{ message: string }> {
+    return this.request<{ message: string }>(`/services/${uuid}/restart`, {
+      method: 'GET',
     });
   }
 
@@ -430,12 +473,32 @@ export class CoolifyClient {
   }
 
   // Deployment Management
-  async getDeployments(applicationUuid: string): Promise<Deployment[]> {
-    return this.request<Deployment[]>(`/applications/${applicationUuid}/deployments`);
+  async listAllDeployments(skip?: number, take?: number): Promise<Deployment[]> {
+    const queryParams = new URLSearchParams();
+    if (skip !== undefined) queryParams.set('skip', skip.toString());
+    if (take !== undefined) queryParams.set('take', take.toString());
+    const queryString = queryParams.toString();
+    const url = queryString ? `/deployments?${queryString}` : '/deployments';
+    return this.request<Deployment[]>(url);
+  }
+
+  async getDeployments(applicationUuid: string, skip?: number, take?: number): Promise<Deployment[]> {
+    const queryParams = new URLSearchParams();
+    if (skip !== undefined) queryParams.set('skip', skip.toString());
+    if (take !== undefined) queryParams.set('take', take.toString());
+    const queryString = queryParams.toString();
+    const url = queryString ? `/deployments/applications/${applicationUuid}?${queryString}` : `/deployments/applications/${applicationUuid}`;
+    return this.request<Deployment[]>(url);
   }
 
   async getDeployment(uuid: string): Promise<Deployment> {
     return this.request<Deployment>(`/deployments/${uuid}`);
+  }
+
+  async deployByTagOrUuid(tagOrUuid: string): Promise<{ message: string; deployment_uuid?: string }> {
+    return this.request<{ message: string; deployment_uuid?: string }>(`/deploy/${tagOrUuid}`, {
+      method: 'GET',
+    });
   }
 
   async cancelDeployment(uuid: string): Promise<{ message: string }> {
