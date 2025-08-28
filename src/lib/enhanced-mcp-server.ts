@@ -556,6 +556,48 @@ export class EnhancedCoolifyMcpServer extends McpServer {
       };
     });
 
+    // Add pagination documentation tool - CRITICAL FOR AVOIDING ERRORS
+    this.tool('coolify_pagination_guide', '⚠️ MUST READ: Guidelines to prevent token limit errors', {}, 
+      async () => {
+        const guide = `
+🚨 COOLIFY MCP PAGINATION GUIDE - CRITICAL 🚨
+============================================
+
+⚠️ MANY OPERATIONS WILL FAIL WITHOUT PAGINATION!
+
+TOOLS REQUIRING PAGINATION:
+---------------------------
+1. get_deployments → ALWAYS use: skip (0), limit (10)
+2. get_application_deployments → use: skip, take (default: 10)
+3. list_applications → use: limit (25), full (false)
+4. list_databases → use: limit (25)
+5. list_services → use: limit (25)
+6. list_deployments → use: skip, take
+
+DEFAULT SAFE VALUES:
+-------------------
+• Deployments: limit=10 (max: 50)
+• Applications: limit=25, full=false
+• Databases/Services: limit=25
+
+PAGINATION PATTERN:
+------------------
+First page: skip=0, limit=10
+Next page: skip=10, limit=10
+Next page: skip=20, limit=10
+
+Check response.pagination.hasMore to know if more data exists.
+
+ERROR: "exceeds maximum allowed tokens (25000)"
+→ Solution: Reduce limit, use pagination!
+
+ALWAYS START WITH SMALL LIMITS!`;
+        return {
+          content: [{ type: 'text', text: guide }]
+        };
+      }
+    );
+
     // Register new deployment and control tools
     registerDeploymentTools(this, this.client);
     registerDatabaseControlTools(this, this.client);
