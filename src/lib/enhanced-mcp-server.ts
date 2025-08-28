@@ -4,6 +4,11 @@ import { CoolifyClient } from './coolify-client.js';
 import { ErrorHandler, EnhancedError } from './error-handler.js';
 import { ParameterValidator } from './parameter-validator.js';
 import { EnvironmentManager } from './environment-manager.js';
+import { 
+  registerDeploymentTools, 
+  registerDatabaseControlTools, 
+  registerServiceControlTools 
+} from './mcp-tools-deployments.js';
 import debug from 'debug';
 import { z } from 'zod';
 import type {
@@ -550,6 +555,11 @@ export class EnhancedCoolifyMcpServer extends McpServer {
         content: [{ type: 'text', text: documentation }]
       };
     });
+
+    // Register new deployment and control tools
+    registerDeploymentTools(this, this.client);
+    registerDatabaseControlTools(this, this.client);
+    registerServiceControlTools(this, this.client);
   }
 
   async connect(transport: Transport): Promise<void> {
