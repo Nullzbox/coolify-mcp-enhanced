@@ -57,6 +57,7 @@
   "homepage": "https://github.com/dazeb/coolify-mcp-enhanced#readme",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.6.1",
+    "axios": "^1.11.0",
     "reflect-metadata": "^0.2.2",
     "zod": "^3.24.2"
   },

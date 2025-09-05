@@ -540,10 +540,35 @@ export class CoolifyMcpServer extends McpServer {
     this.tool('get_application_environment_variables', 'Get environment variables for an application', {
       uuid: z.string()
     }, async (args, _extra) => {
-      const variables = await this.client.getApplicationEnvironmentVariables(args.uuid);
-      return {
-        content: [{ type: 'text', text: JSON.stringify(variables, null, 2) }]
-      };
+      try {
+        const variables = await this.client.getApplicationEnvironmentVariables(args.uuid);
+        return {
+          content: [{ 
+            type: 'text', 
+            text: JSON.stringify({
+              success: true,
+              data: variables,
+              count: variables.length,
+              message: `Retrieved ${variables.length} environment variables`
+            }, null, 2) 
+          }]
+        };
+      } catch (error: any) {
+        return {
+          content: [{ 
+            type: 'text', 
+            text: JSON.stringify({
+              success: false,
+              error: {
+                message: error?.message || 'Failed to get environment variables',
+                code: error?.code || error?.response?.status || 'UNKNOWN',
+                details: error?.response?.data || null
+              },
+              uuid: args.uuid
+            }, null, 2) 
+          }]
+        };
+      }
     });
 
     this.tool('update_application_environment_variables', 'Update environment variables for an application', {
@@ -597,13 +622,16 @@ export class CoolifyMcpServer extends McpServer {
         // Create a summary for each deployment to reduce size
         const summary = deploymentArray.map((d: any) => ({
           id: d.id,
-          uuid: d.uuid,
+          uuid: d.uuid || d.deployment_uuid,
           status: d.status,
           created_at: d.created_at,
           updated_at: d.updated_at,
-          commit_sha: d.git_commit_sha?.substring(0, 8),
-          message: d.message || d.description,
-          // Only include essential fields
+          commit: d.commit?.substring(0, 8) || d.git_commit_sha?.substring(0, 8),
+          commit_message: d.commit_message?.substring(0, 100) || d.message?.substring(0, 100),
+          application_name: d.application_name,
+          deployment_url: d.deployment_url,
+          // Explicitly exclude large fields like logs, build_logs, environment_variables
+          // For full details including logs, use get_deployment with specific UUID
         }));
         
         return {
@@ -645,10 +673,49 @@ export class CoolifyMcpServer extends McpServer {
     this.tool('get_deployment', 'Get details about a specific deployment', {
       uuid: z.string()
     }, async (args, _extra) => {
-      const deployment = await this.client.getDeployment(args.uuid);
-      return {
-        content: [{ type: 'text', text: JSON.stringify(deployment, null, 2) }]
-      };
+      try {
+        const deployment: any = await this.client.getDeployment(args.uuid);
+        
+        // Limit logs size to prevent token overflow
+        if (deployment.logs) {
+          if (typeof deployment.logs === 'string' && deployment.logs.length > 10000) {
+            deployment.logs = deployment.logs.substring(0, 10000) + '\n... [truncated - logs too large]';
+          } else if (Array.isArray(deployment.logs) && JSON.stringify(deployment.logs).length > 10000) {
+            deployment.logs = deployment.logs.slice(-20); // Keep last 20 log entries
+          }
+        }
+        
+        if (deployment.build_logs) {
+          if (typeof deployment.build_logs === 'string' && deployment.build_logs.length > 10000) {
+            deployment.build_logs = deployment.build_logs.substring(0, 10000) + '\n... [truncated - logs too large]';
+          }
+        }
+        
+        return {
+          content: [{ 
+            type: 'text', 
+            text: JSON.stringify({
+              success: true,
+              data: deployment,
+              message: 'Deployment details retrieved. Logs may be truncated if too large.'
+            }, null, 2) 
+          }]
+        };
+      } catch (error: any) {
+        return {
+          content: [{ 
+            type: 'text', 
+            text: JSON.stringify({
+              success: false,
+              error: {
+                message: error?.message || 'Failed to get deployment',
+                code: error?.code || error?.response?.status || 'UNKNOWN'
+              },
+              uuid: args.uuid
+            }, null, 2) 
+          }]
+        };
+      }
     });
 
     this.tool('cancel_deployment', 'Cancel a running deployment', {

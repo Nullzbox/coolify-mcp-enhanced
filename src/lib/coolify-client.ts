@@ -488,7 +488,8 @@ export class CoolifyClient {
     if (take !== undefined) queryParams.set('take', take.toString());
     const queryString = queryParams.toString();
     const url = queryString ? `/deployments/applications/${applicationUuid}?${queryString}` : `/deployments/applications/${applicationUuid}`;
-    return this.request<Deployment[]>(url);
+    const response = await this.request<{ count: number; deployments: Deployment[] }>(url);
+    return response.deployments || [];
   }
 
   async getDeployment(uuid: string): Promise<Deployment> {
