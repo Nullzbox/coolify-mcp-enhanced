@@ -44,4 +44,17 @@ coverage/
 *.tgz
 
 # Yarn Integrity file
-.yarn-integrity 
+.yarn-integrity
+
+# Test files (should not be committed)
+test-*.js
+test*.js
+log*
+testff*
+
+# Security - Never commit credentials
+*.pem
+*.key
+*.cert
+.env.*
+config.local.json 
