@@ -737,17 +737,46 @@ export class CoolifyMcpServer extends McpServer {
       };
     });
 
-    this.tool('get_application_logs', 'Get logs for an application', {
+    this.tool('get_application_logs', 'Get logs for an application (supports pagination via lines parameter)', {
       uuid: z.string(),
-      since: z.string().optional(),
-      until: z.string().optional(),
-      lines: z.number().optional()
+      since: z.string().optional().describe('Start time for log filtering'),
+      until: z.string().optional().describe('End time for log filtering'),
+      lines: z.number().optional().describe('Number of log lines to return (default: 100, use for pagination)')
     }, async (args, _extra) => {
-      const { uuid, ...options } = args;
-      const logs = await this.client.getApplicationLogs(uuid, options);
-      return {
-        content: [{ type: 'text', text: JSON.stringify(logs, null, 2) }]
-      };
+      try {
+        const { uuid, ...options } = args;
+        const lines = options.lines || 100;
+        const logs = await this.client.getApplicationLogs(uuid, { ...options, lines });
+        
+        return {
+          content: [{ 
+            type: 'text', 
+            text: JSON.stringify({
+              success: true,
+              data: logs,
+              pagination: {
+                lines_returned: logs.length,
+                lines_requested: lines,
+                hint: 'Use the "lines" parameter to control how many log entries to retrieve. For more logs, increase the lines parameter or use since/until for time-based filtering.'
+              }
+            }, null, 2) 
+          }]
+        };
+      } catch (error: any) {
+        return {
+          content: [{ 
+            type: 'text', 
+            text: JSON.stringify({
+              success: false,
+              error: {
+                message: error?.message || 'Failed to get logs',
+                code: error?.code || error?.response?.status || 'UNKNOWN'
+              },
+              uuid: args.uuid
+            }, null, 2) 
+          }]
+        };
+      }
     });
 
     // Full-Stack Deployment Tools
@@ -783,6 +812,308 @@ export class CoolifyMcpServer extends McpServer {
       return {
         content: [{ type: 'text', text: JSON.stringify(result, null, 2) }]
       };
+    });
+
+    // Resources Management
+    this.tool('list_resources', 'List all resources across all servers', {}, async (_args, _extra) => {
+      try {
+        const resources = await this.client.listResources();
+        return {
+          content: [{ 
+            type: 'text', 
+            text: JSON.stringify({
+              success: true,
+              data: resources,
+              count: resources.length,
+              message: `Found ${resources.length} total resources`
+            }, null, 2) 
+          }]
+        };
+      } catch (error: any) {
+        return {
+          content: [{ 
+            type: 'text', 
+            text: JSON.stringify({
+              success: false,
+              error: {
+                message: error?.message || 'Failed to list resources',
+                code: error?.code || error?.response?.status || 'UNKNOWN'
+              }
+            }, null, 2) 
+          }]
+        };
+      }
+    });
+
+    // Teams Management
+    this.tool('list_teams', 'List all teams', {}, async (_args, _extra) => {
+      try {
+        const teams = await this.client.listTeams();
+        return {
+          content: [{ 
+            type: 'text', 
+            text: JSON.stringify({
+              success: true,
+              data: teams,
+              count: teams.length
+            }, null, 2) 
+          }]
+        };
+      } catch (error: any) {
+        return {
+          content: [{ 
+            type: 'text', 
+            text: JSON.stringify({
+              success: false,
+              error: {
+                message: error?.message || 'Failed to list teams',
+                code: error?.code || error?.response?.status || 'UNKNOWN'
+              }
+            }, null, 2) 
+          }]
+        };
+      }
+    });
+
+    this.tool('get_team', 'Get team details by ID', {
+      id: z.string()
+    }, async (args, _extra) => {
+      try {
+        const team = await this.client.getTeam(args.id);
+        return {
+          content: [{ 
+            type: 'text', 
+            text: JSON.stringify({
+              success: true,
+              data: team
+            }, null, 2) 
+          }]
+        };
+      } catch (error: any) {
+        return {
+          content: [{ 
+            type: 'text', 
+            text: JSON.stringify({
+              success: false,
+              error: {
+                message: error?.message || 'Failed to get team',
+                code: error?.code || error?.response?.status || 'UNKNOWN'
+              },
+              id: args.id
+            }, null, 2) 
+          }]
+        };
+      }
+    });
+
+    this.tool('get_current_team', 'Get current authenticated team', {}, async (_args, _extra) => {
+      try {
+        const team = await this.client.getCurrentTeam();
+        return {
+          content: [{ 
+            type: 'text', 
+            text: JSON.stringify({
+              success: true,
+              data: team
+            }, null, 2) 
+          }]
+        };
+      } catch (error: any) {
+        return {
+          content: [{ 
+            type: 'text', 
+            text: JSON.stringify({
+              success: false,
+              error: {
+                message: error?.message || 'Failed to get current team',
+                code: error?.code || error?.response?.status || 'UNKNOWN'
+              }
+            }, null, 2) 
+          }]
+        };
+      }
+    });
+
+    this.tool('get_team_members', 'Get members of a team', {
+      id: z.string()
+    }, async (args, _extra) => {
+      try {
+        const members = await this.client.getTeamMembers(args.id);
+        return {
+          content: [{ 
+            type: 'text', 
+            text: JSON.stringify({
+              success: true,
+              data: members,
+              count: members.length,
+              team_id: args.id
+            }, null, 2) 
+          }]
+        };
+      } catch (error: any) {
+        return {
+          content: [{ 
+            type: 'text', 
+            text: JSON.stringify({
+              success: false,
+              error: {
+                message: error?.message || 'Failed to get team members',
+                code: error?.code || error?.response?.status || 'UNKNOWN'
+              },
+              id: args.id
+            }, null, 2) 
+          }]
+        };
+      }
+    });
+
+    // Specialized Database Creation Tools
+    this.tool('create_postgresql_database', 'Create a PostgreSQL database', {
+      server_uuid: z.string(),
+      project_uuid: z.string(),
+      name: z.string(),
+      postgres_user: z.string().default('postgres'),
+      postgres_password: z.string(),
+      postgres_db: z.string(),
+      environment_name: z.string().optional(),
+      instant_deploy: z.boolean().default(true)
+    }, async (args, _extra) => {
+      try {
+        const result = await this.client.createPostgreSQLDatabase(args);
+        return {
+          content: [{ 
+            type: 'text', 
+            text: JSON.stringify({
+              success: true,
+              data: result,
+              message: 'PostgreSQL database created successfully'
+            }, null, 2) 
+          }]
+        };
+      } catch (error: any) {
+        return {
+          content: [{ 
+            type: 'text', 
+            text: JSON.stringify({
+              success: false,
+              error: {
+                message: error?.message || 'Failed to create PostgreSQL database',
+                code: error?.code || error?.response?.status || 'UNKNOWN'
+              }
+            }, null, 2) 
+          }]
+        };
+      }
+    });
+
+    this.tool('create_mysql_database', 'Create a MySQL database', {
+      server_uuid: z.string(),
+      project_uuid: z.string(),
+      name: z.string(),
+      mysql_user: z.string(),
+      mysql_password: z.string(),
+      mysql_database: z.string(),
+      mysql_root_password: z.string(),
+      environment_name: z.string().optional(),
+      instant_deploy: z.boolean().default(true)
+    }, async (args, _extra) => {
+      try {
+        const result = await this.client.createMySQLDatabase(args);
+        return {
+          content: [{ 
+            type: 'text', 
+            text: JSON.stringify({
+              success: true,
+              data: result,
+              message: 'MySQL database created successfully'
+            }, null, 2) 
+          }]
+        };
+      } catch (error: any) {
+        return {
+          content: [{ 
+            type: 'text', 
+            text: JSON.stringify({
+              success: false,
+              error: {
+                message: error?.message || 'Failed to create MySQL database',
+                code: error?.code || error?.response?.status || 'UNKNOWN'
+              }
+            }, null, 2) 
+          }]
+        };
+      }
+    });
+
+    this.tool('create_mongodb_database', 'Create a MongoDB database', {
+      server_uuid: z.string(),
+      project_uuid: z.string(),
+      name: z.string(),
+      mongo_initdb_root_username: z.string().default('root'),
+      environment_name: z.string().optional(),
+      instant_deploy: z.boolean().default(true)
+    }, async (args, _extra) => {
+      try {
+        const result = await this.client.createMongoDBDatabase(args);
+        return {
+          content: [{ 
+            type: 'text', 
+            text: JSON.stringify({
+              success: true,
+              data: result,
+              message: 'MongoDB database created successfully'
+            }, null, 2) 
+          }]
+        };
+      } catch (error: any) {
+        return {
+          content: [{ 
+            type: 'text', 
+            text: JSON.stringify({
+              success: false,
+              error: {
+                message: error?.message || 'Failed to create MongoDB database',
+                code: error?.code || error?.response?.status || 'UNKNOWN'
+              }
+            }, null, 2) 
+          }]
+        };
+      }
+    });
+
+    this.tool('create_redis_database', 'Create a Redis database', {
+      server_uuid: z.string(),
+      project_uuid: z.string(),
+      name: z.string(),
+      environment_name: z.string().optional(),
+      instant_deploy: z.boolean().default(true)
+    }, async (args, _extra) => {
+      try {
+        const result = await this.client.createRedisDatabase(args);
+        return {
+          content: [{ 
+            type: 'text', 
+            text: JSON.stringify({
+              success: true,
+              data: result,
+              message: 'Redis database created successfully'
+            }, null, 2) 
+          }]
+        };
+      } catch (error: any) {
+        return {
+          content: [{ 
+            type: 'text', 
+            text: JSON.stringify({
+              success: false,
+              error: {
+                message: error?.message || 'Failed to create Redis database',
+                code: error?.code || error?.response?.status || 'UNKNOWN'
+              }
+            }, null, 2) 
+          }]
+        };
+      }
     });
   }
 

@@ -263,6 +263,89 @@ export class CoolifyClient {
     });
   }
 
+  // Create specific database types
+  async createPostgreSQLDatabase(data: any): Promise<{ uuid: string }> {
+    return this.request<{ uuid: string }>('/databases/postgresql', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async createMySQLDatabase(data: any): Promise<{ uuid: string }> {
+    return this.request<{ uuid: string }>('/databases/mysql', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async createMariaDBDatabase(data: any): Promise<{ uuid: string }> {
+    return this.request<{ uuid: string }>('/databases/mariadb', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async createMongoDBDatabase(data: any): Promise<{ uuid: string }> {
+    return this.request<{ uuid: string }>('/databases/mongodb', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async createRedisDatabase(data: any): Promise<{ uuid: string }> {
+    return this.request<{ uuid: string }>('/databases/redis', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async createDragonflyDatabase(data: any): Promise<{ uuid: string }> {
+    return this.request<{ uuid: string }>('/databases/dragonfly', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async createKeyDBDatabase(data: any): Promise<{ uuid: string }> {
+    return this.request<{ uuid: string }>('/databases/keydb', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async createClickHouseDatabase(data: any): Promise<{ uuid: string }> {
+    return this.request<{ uuid: string }>('/databases/clickhouse', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  // Resources endpoint
+  async listResources(): Promise<any[]> {
+    return this.request<any[]>('/resources');
+  }
+
+  // Teams management
+  async listTeams(): Promise<any[]> {
+    return this.request<any[]>('/teams');
+  }
+
+  async getTeam(id: string): Promise<any> {
+    return this.request<any>(`/teams/${id}`);
+  }
+
+  async getTeamMembers(id: string): Promise<any[]> {
+    return this.request<any[]>(`/teams/${id}/members`);
+  }
+
+  async getCurrentTeam(): Promise<any> {
+    return this.request<any>('/teams/current');
+  }
+
+  async getCurrentTeamMembers(): Promise<any[]> {
+    return this.request<any[]>('/teams/current/members');
+  }
+
   async listServices(): Promise<Service[]> {
     return this.request<Service[]>('/services');
   }

@@ -203,6 +203,15 @@ Once set up, you can have natural conversations like:
 "Deploy this Docker Compose configuration as a new service in my 'production' project."
 ```
 
+## 📖 Important: Pagination Support
+
+Many tools support pagination to prevent token overflow. When using list operations, you can control the response size:
+- **Deployments**: Use `skip` and `limit` parameters (e.g., "Show 10 deployments starting from 20")
+- **Applications/Databases/Services**: Use `limit` parameter (e.g., "List 5 applications")
+- **Logs**: Use `lines` parameter (e.g., "Show last 100 log lines")
+
+The responses include pagination hints to help you navigate large datasets efficiently.
+
 ## 🛠️ Available Tools & Commands
 
 ### **Project & Server Management**
@@ -236,9 +245,16 @@ Once set up, you can have natural conversations like:
 ### **Database Management**
 | Tool | Description | Example Use |
 |------|-------------|-------------|
-| `list_databases` | List all databases | "Show my databases" |
-| `create_database` | Create new database | "Create a PostgreSQL database" |
+| `list_databases` | List all databases (with pagination) | "Show my databases" |
+| `get_database` | Get database details | "Show PostgreSQL database details" |
 | `update_database` | Update database settings | "Change database memory limit" |
+| `create_postgresql_database` | Create PostgreSQL database | "Create a PostgreSQL database" |
+| `create_mysql_database` | Create MySQL database | "Create a MySQL database" |
+| `create_mongodb_database` | Create MongoDB database | "Create a MongoDB database" |
+| `create_redis_database` | Create Redis database | "Create a Redis cache" |
+| `start_database` | Start a database | "Start the PostgreSQL database" |
+| `stop_database` | Stop a database | "Stop the Redis cache" |
+| `restart_database` | Restart a database | "Restart MongoDB" |
 
 ### **Environment & Configuration**
 | Tool | Description | Example Use |
@@ -249,9 +265,28 @@ Once set up, you can have natural conversations like:
 ### **Deployment Management**
 | Tool | Description | Example Use |
 |------|-------------|-------------|
-| `get_deployments` | List deployments | "Show deployment history" |
+| `get_deployments` | List deployments (paginated) | "Show last 10 deployments" |
+| `get_deployment` | Get deployment details | "Show deployment details" |
 | `cancel_deployment` | Cancel deployment | "Stop the failing deployment" |
 | `deploy_application` | Deploy application | "Deploy my latest changes" |
+
+### **Team & Resource Management**
+| Tool | Description | Example Use |
+|------|-------------|-------------|
+| `list_resources` | List all resources | "Show all resources across servers" |
+| `list_teams` | List all teams | "Show my teams" |
+| `get_team` | Get team details | "Show team info" |
+| `get_current_team` | Get current team | "What team am I using?" |
+| `get_team_members` | Get team members | "Who's in my team?" |
+
+### **Application Monitoring**  
+| Tool | Description | Example Use |
+|------|-------------|-------------|
+| `get_application_logs` | Get logs (with pagination) | "Show last 100 log lines" |
+| `get_application_resources` | Monitor resources | "Check CPU usage" |
+| `stop_application` | Stop application | "Stop the API server" |
+| `start_application` | Start application | "Start the web app" |
+| `restart_application` | Restart application | "Restart the service" |
 
 ## 🔧 Configuration Examples
 
