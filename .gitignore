@@ -66,4 +66,5 @@ CONFIGURATION_*.md
 *secrets*.yaml
 *secrets*.yml
 *.config.local.js
-.secrets/ .mcp.json
+.secrets/
+.mcp.json
