@@ -1,7 +1,7 @@
 # 📋 Rapport de Corrections - Coolify MCP Enhanced
 
 **Date**: 2025-01-08
-**Version**: 1.2.0
+**Version**: 1.3.0
 **Status**: ✅ **PRODUCTION READY**
 
 ---
@@ -111,6 +111,74 @@ this.tool('create_application', ..., {
 **Fichier modifié**: `src/lib/mcp-server.ts` (lignes 619-634)
 
 **Impact**: L'API Coolify peut maintenant créer des applications correctement avec tous les paramètres requis.
+
+---
+
+## 🐛 Bug Critique #3 Corrigé (v1.3.0) - LE VRAI PROBLÈME!
+
+### ❌ Problème: MAUVAIS ENDPOINT API
+
+Même après l'ajout des paramètres manquants (v1.2.0), `create_application` retournait toujours:
+```json
+{
+  "success": false,
+  "error": {
+    "message": "The requested resource was not found",
+    "code": "RESOURCE_NOT_FOUND"
+  }
+}
+```
+
+### ✅ Cause Identifiée (LA VRAIE!)
+
+L'endpoint utilisé était **INCORRECT**:
+- ❌ **AVANT**: `POST /applications` → **N'EXISTE PAS** dans l'API Coolify
+- ✅ **APRÈS**: `POST /applications/public` → **Endpoint officiel** Coolify
+
+**Référence**: [Documentation Officielle Coolify](https://coolify.io/docs/api-reference/api/operations/create-public-application)
+
+### ✅ Solution Appliquée
+
+**Fichier**: `src/lib/coolify-client.ts` (ligne 418)
+
+```typescript
+// AVANT (ENDPOINT INCORRECT)
+async createApplication(data: CreateApplicationRequest): Promise<{ uuid: string }> {
+  return this.request<{ uuid: string }>('/applications', {  // ❌ ENDPOINT N'EXISTE PAS
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+// APRÈS (ENDPOINT CORRECT)
+async createApplication(data: CreateApplicationRequest): Promise<{ uuid: string }> {
+  return this.request<{ uuid: string }>('/applications/public', {  // ✅ ENDPOINT OFFICIEL
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+```
+
+### 📚 Découverte via Documentation Officielle
+
+Après consultation de la documentation Coolify API:
+- L'endpoint `/applications` est utilisé uniquement pour GET (liste/détails)
+- L'endpoint `/applications/public` est utilisé pour POST (création)
+- L'API Coolify distingue les applications publiques (public repos) des applications privées
+
+### ✅ Paramètres Requis (Confirmés par Doc Officielle)
+
+Selon la documentation Coolify, les paramètres **REQUIS** sont:
+- `project_uuid` ✅
+- `server_uuid` ✅
+- `environment_name` ✅ (PAS environment_uuid!)
+- `git_repository` ✅
+- `git_branch` ✅
+- `name` ✅
+
+**Note**: L'API utilise `environment_name` et NON `environment_uuid` (contrairement à ce qu'on pensait en v1.2.0)
+
+**Impact**: ✅ **create_application FONCTIONNE MAINTENANT COMPLÈTEMENT**
 
 ---
 

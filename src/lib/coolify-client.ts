@@ -415,7 +415,7 @@ export class CoolifyClient {
   }
 
   async createApplication(data: CreateApplicationRequest): Promise<{ uuid: string }> {
-    return this.request<{ uuid: string }>('/applications', {
+    return this.request<{ uuid: string }>('/applications/public', {
       method: 'POST',
       body: JSON.stringify(data),
     });
