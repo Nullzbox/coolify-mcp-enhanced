@@ -33,6 +33,20 @@ export interface ErrorResponse {
   message: string;
 }
 
+export interface GithubApp {
+  id: number;
+  uuid: string;
+  name: string;
+  api_url: string;
+  html_url: string;
+  custom_user: string;
+  custom_port: number;
+  is_public: boolean;
+  team_id: number;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface ServerDomain {
   ip: string;
   domains: string[];

@@ -30,6 +30,7 @@ import {
   FullStackProjectResponse,
   InfrastructureDeploymentConfig,
   InfrastructureDeploymentResponse,
+  GithubApp,
 } from '../types/coolify.js';
 import { ErrorHandler, EnhancedError } from './error-handler.js';
 import { RetryManager } from './retry-manager.js';
@@ -436,11 +437,58 @@ export class CoolifyClient {
     });
   }
 
+  async listGithubApps(): Promise<GithubApp[]> {
+    // Try the GitHub Apps endpoint
+    // Note: The exact endpoint may vary based on Coolify version
+    // Common patterns: /security/github-apps or /github-apps
+    return this.request<GithubApp[]>('/security/github-apps');
+  }
+
+  async getGithubAppById(idOrUuid: string | number): Promise<GithubApp | null> {
+    const apps = await this.listGithubApps();
+
+    // Try to find by UUID first
+    let app = apps.find(a => a.uuid === idOrUuid);
+
+    // If not found and idOrUuid is a number, try to find by ID
+    if (!app && typeof idOrUuid === 'number') {
+      app = apps.find(a => a.id === idOrUuid);
+    }
+
+    // If not found and idOrUuid is a string number, try to find by ID
+    if (!app && typeof idOrUuid === 'string' && !isNaN(parseInt(idOrUuid))) {
+      app = apps.find(a => a.id === parseInt(idOrUuid));
+    }
+
+    return app || null;
+  }
+
   async createPrivateGithubAppApplication(data: CreatePrivateGithubAppApplicationRequest): Promise<{ uuid: string }> {
     log('Creating private GitHub app application with data:', JSON.stringify(data, null, 2));
-    return this.request<{ uuid: string }>('/applications/private-github-app', {
+
+    // Resolve github_app_uuid to source_id
+    const githubApp = await this.getGithubAppById(data.github_app_uuid);
+    if (!githubApp) {
+      throw new Error(`GitHub App not found with UUID: ${data.github_app_uuid}`);
+    }
+
+    log(`Resolved GitHub App UUID ${data.github_app_uuid} to ID ${githubApp.id}`);
+
+    // Transform the request to use source_id and source_type
+    const requestData: any = {
+      ...data,
+      source_id: githubApp.id,
+      source_type: 'App\\Models\\GithubApp',
+    };
+
+    // Remove github_app_uuid as it's not needed in the API request
+    delete requestData.github_app_uuid;
+
+    log('Transformed request data:', JSON.stringify(requestData, null, 2));
+
+    return this.request<{ uuid: string }>('/applications/public', {
       method: 'POST',
-      body: JSON.stringify(data),
+      body: JSON.stringify(requestData),
     });
   }
 

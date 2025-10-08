@@ -1,4 +1,15 @@
-# Debug MCP Coolify
+# Debug MCP Coolify - v1.4.2
+
+## ✅ Problème résolu : GitHub App UUID → source_id
+
+**Version 1.4.2** résout automatiquement l'UUID de la GitHub App en ID numérique interne.
+
+Le MCP récupère maintenant:
+1. Liste les GitHub Apps disponibles
+2. Résout l'UUID fourni en ID numérique
+3. Utilise `source_id` et `source_type` dans la requête API
+
+Vous n'avez **plus besoin** de trouver manuellement l'ID de la GitHub App.
 
 ## Activer les logs de debug
 
@@ -114,8 +125,67 @@ npm run build
 DEBUG=coolify:* node dist/index.js
 ```
 
+## Nouveaux Tools MCP (v1.4.2)
+
+### list_github_apps
+
+Liste toutes les GitHub Apps configurées dans Coolify :
+
+```javascript
+{
+  "success": true,
+  "data": [
+    {
+      "id": 1,
+      "uuid": "frail-falcon-i4gwsow8sk48ss8wk",
+      "name": "My GitHub App",
+      "api_url": "https://api.github.com",
+      "html_url": "https://github.com",
+      ...
+    }
+  ],
+  "message": "Found 1 GitHub App(s)"
+}
+```
+
+### get_github_app
+
+Récupère les détails d'une GitHub App par UUID ou ID :
+
+```javascript
+get_github_app({ id_or_uuid: "frail-falcon-i4gwsow8sk48ss8wk" })
+// ou
+get_github_app({ id_or_uuid: 1 })
+```
+
+## Exemple de débogage complet
+
+Avec `DEBUG=coolify:*`, voici ce que vous verrez lors de la création d'application :
+
+```
+coolify:client Creating private GitHub app application with data: {
+  "name": "backend-medusa",
+  "github_app_uuid": "frail-falcon-i4gwsow8sk48ss8wk",
+  ...
+}
+
+coolify:client Making request to: https://coolify/api/v1/security/keys
+coolify:client Resolved GitHub App UUID frail-falcon-i4gwsow8sk48ss8wk to ID 1
+
+coolify:client Transformed request data: {
+  "name": "backend-medusa",
+  "source_id": 1,
+  "source_type": "App\\Models\\GithubApp",
+  ...
+}
+
+coolify:client Making request to: https://coolify/api/v1/applications/public
+coolify:client Request successful: /applications/public
+```
+
 ## Versions
 
+- v1.4.2 : GitHub App UUID automatique resolution + nouveaux tools (list_github_apps, get_github_app)
 - v1.4.1 : Enhanced error reporting avec détails de validation complets
 - v1.4.0 : Support repos privés (GitHub App + Deploy Key)
 - v1.3.0 : Fix endpoint critique

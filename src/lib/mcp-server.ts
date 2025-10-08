@@ -1220,26 +1220,69 @@ export class CoolifyMcpServer extends McpServer {
       try {
         const result = await this.client.createRedisDatabase(args);
         return {
-          content: [{ 
-            type: 'text', 
+          content: [{
+            type: 'text',
             text: JSON.stringify({
               success: true,
               data: result,
               message: 'Redis database created successfully'
-            }, null, 2) 
+            }, null, 2)
           }]
         };
       } catch (error: any) {
         return {
-          content: [{ 
-            type: 'text', 
+          content: [{
+            type: 'text',
             text: JSON.stringify({
               success: false,
               error: {
                 message: error?.message || 'Failed to create Redis database',
                 code: error?.code || error?.response?.status || 'UNKNOWN'
               }
-            }, null, 2) 
+            }, null, 2)
+          }]
+        };
+      }
+    });
+
+    this.tool('list_github_apps', 'List all GitHub Apps configured in Coolify', {}, async (_args, _extra) => {
+      try {
+        const apps = await this.client.listGithubApps();
+        return {
+          content: [{
+            type: 'text',
+            text: JSON.stringify(formatToolSuccess(apps, `Found ${apps.length} GitHub App(s)`), null, 2)
+          }]
+        };
+      } catch (error: any) {
+        return {
+          content: [{
+            type: 'text',
+            text: JSON.stringify(formatToolError(error, 'list_github_apps'), null, 2)
+          }]
+        };
+      }
+    });
+
+    this.tool('get_github_app', 'Get details of a specific GitHub App by UUID or ID', {
+      id_or_uuid: z.union([z.string(), z.number()])
+    }, async (args, _extra) => {
+      try {
+        const app = await this.client.getGithubAppById(args.id_or_uuid);
+        if (!app) {
+          throw new Error(`GitHub App not found with ID/UUID: ${args.id_or_uuid}`);
+        }
+        return {
+          content: [{
+            type: 'text',
+            text: JSON.stringify(formatToolSuccess(app, 'GitHub App retrieved successfully'), null, 2)
+          }]
+        };
+      } catch (error: any) {
+        return {
+          content: [{
+            type: 'text',
+            text: JSON.stringify(formatToolError(error, 'get_github_app', { id_or_uuid: args.id_or_uuid }), null, 2)
           }]
         };
       }
