@@ -36,6 +36,16 @@ export function formatToolError(error: any, operation: string, additionalContext
   const errorMessage = error?.message || error?.toString() || 'Unknown error occurred';
   const errorCode = error?.code || error?.response?.status?.toString() || 'UNKNOWN_ERROR';
 
+  // CRITICAL DEBUG: Log what we receive
+  console.error(`[formatToolError] Operation: ${operation}`);
+  console.error(`[formatToolError] Error message: ${errorMessage}`);
+  console.error(`[formatToolError] Error keys:`, Object.keys(error || {}));
+  console.error(`[formatToolError] error.errors:`, error?.errors);
+  console.error(`[formatToolError] error.details:`, error?.details);
+  console.error(`[formatToolError] error.response:`, error?.response);
+  console.error(`[formatToolError] error.response.data:`, error?.response?.data);
+  console.error(`[formatToolError] error.response.data.errors:`, error?.response?.data?.errors);
+
   // Extract all available error details
   const details: any = {
     ...additionalContext
@@ -47,15 +57,21 @@ export function formatToolError(error: any, operation: string, additionalContext
 
   // Try multiple paths to find validation errors
   if (error?.response?.data?.errors) {
+    console.error(`[formatToolError] ✅ Found validation errors in error.response.data.errors`);
     validationErrors = error.response.data.errors;
   } else if (error?.details?.errors) {
+    console.error(`[formatToolError] ✅ Found validation errors in error.details.errors`);
     validationErrors = error.details.errors;
   } else if (error?.errors) {
+    console.error(`[formatToolError] ✅ Found validation errors in error.errors`);
     validationErrors = error.errors;
+  } else {
+    console.error(`[formatToolError] ❌ NO validation errors found in any location`);
   }
 
   // If we found validation errors, make them VERY visible at the top level
   if (validationErrors) {
+    console.error(`[formatToolError] Adding VALIDATION_ERRORS to details:`, validationErrors);
     details.VALIDATION_ERRORS = validationErrors;
     details.validationErrors = validationErrors; // Keep for backwards compatibility
   }
@@ -63,6 +79,11 @@ export function formatToolError(error: any, operation: string, additionalContext
   // Include full API response for debugging
   if (error?.response?.data) {
     details.fullApiResponse = error.response.data;
+  }
+
+  // Include full response object if available
+  if (error?.response?.fullData) {
+    details.rawResponseData = error.response.fullData;
   }
 
   // Include error details if available
@@ -80,8 +101,8 @@ export function formatToolError(error: any, operation: string, additionalContext
     details.apiMessage = error.response.data.message;
   }
 
-  return {
-    success: false,
+  const result: ErrorResponse = {
+    success: false as const,
     error: {
       message: errorMessage,
       code: errorCode,
@@ -91,6 +112,10 @@ export function formatToolError(error: any, operation: string, additionalContext
     operation,
     timestamp: new Date().toISOString()
   };
+
+  console.error(`[formatToolError] Final result:`, JSON.stringify(result, null, 2));
+
+  return result;
 }
 
 /**

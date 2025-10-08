@@ -84,11 +84,21 @@ export class CoolifyClient {
             const error = data as ErrorResponse;
             const errorMessage = error.message || `HTTP ${response.status}: ${response.statusText}`;
             log(`API error: ${response.status} - ${errorMessage}`);
-            log(`API error details:`, JSON.stringify(data, null, 2));
+            log(`API error RAW data structure:`, JSON.stringify(data, null, 2));
+            log(`API error data keys:`, Object.keys(data || {}));
+            log(`API error data type:`, typeof data);
+
+            // CRITICAL DEBUG: Log ALL possible error locations
+            log(`Checking for errors in data.errors:`, (data as any).errors);
+            log(`Checking for errors in data.error:`, (data as any).error);
+            log(`Checking for message in data.message:`, (data as any).message);
+            log(`Full response text will be attached to error`);
 
             // CRITICAL: Extract validation errors if present
             if ((data as any).errors) {
-              log(`Validation errors:`, JSON.stringify((data as any).errors, null, 2));
+              log(`✅ VALIDATION ERRORS FOUND:`, JSON.stringify((data as any).errors, null, 2));
+            } else {
+              log(`❌ NO VALIDATION ERRORS in response.data.errors`);
             }
 
             // Create enhanced error with full API response details
@@ -96,14 +106,22 @@ export class CoolifyClient {
             enhancedError.response = {
               status: response.status,
               statusText: response.statusText,
-              data: data
+              data: data,
+              // CRITICAL: Store the ENTIRE response for debugging
+              fullData: JSON.stringify(data)
             };
             enhancedError.code = (data as any).code || error.error || response.status.toString();
             enhancedError.details = data;
 
-            // CRITICAL: Also add errors directly for easier access
+            // CRITICAL: Also add errors directly for easier access (try multiple paths)
             if ((data as any).errors) {
               enhancedError.errors = (data as any).errors;
+              log(`✅ Added errors to enhancedError.errors`);
+            } else if ((data as any).error) {
+              enhancedError.errors = (data as any).error;
+              log(`✅ Added error to enhancedError.errors (from data.error)`);
+            } else {
+              log(`❌ No errors field found in response data`);
             }
 
             throw enhancedError;
