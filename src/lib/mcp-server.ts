@@ -1,6 +1,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
 import { CoolifyClient } from './coolify-client.js';
+import { formatToolError, formatToolSuccess } from './tool-helpers.js';
 import debug from 'debug';
 import { z } from 'zod';
 import type {
@@ -133,75 +134,123 @@ export class CoolifyMcpServer extends McpServer {
 
     // Then register all tools
     this.tool('list_servers', 'List all Coolify servers', {}, async () => {
-      const servers = await this.client.listServers();
-      return {
-        content: [{ type: 'text', text: JSON.stringify(servers, null, 2) }]
-      };
+      try {
+        const servers = await this.client.listServers();
+        return {
+          content: [{ type: 'text', text: JSON.stringify(formatToolSuccess(servers, `Retrieved ${servers.length} servers`, { count: servers.length }), null, 2) }]
+        };
+      } catch (error: any) {
+        return {
+          content: [{ type: 'text', text: JSON.stringify(formatToolError(error, 'list_servers'), null, 2) }]
+        };
+      }
     });
 
     this.tool('get_server', 'Get details about a specific Coolify server', {
       uuid: z.string().describe('UUID of the server to get details for')
     }, async (args) => {
-      const server = await this.client.getServer(args.uuid);
-      return {
-        content: [{ type: 'text', text: JSON.stringify(server, null, 2) }]
-      };
+      try {
+        const server = await this.client.getServer(args.uuid);
+        return {
+          content: [{ type: 'text', text: JSON.stringify(formatToolSuccess(server, `Retrieved server: ${server.name}`), null, 2) }]
+        };
+      } catch (error: any) {
+        return {
+          content: [{ type: 'text', text: JSON.stringify(formatToolError(error, 'get_server', { uuid: args.uuid }), null, 2) }]
+        };
+      }
     });
 
     this.tool('get_server_resources', 'Get the current resources running on a specific Coolify server', {
       uuid: z.string()
     }, async (args, _extra) => {
-      const resources = await this.client.getServerResources(args.uuid);
-      return {
-        content: [{ type: 'text', text: JSON.stringify(resources, null, 2) }]
-      };
+      try {
+        const resources = await this.client.getServerResources(args.uuid);
+        return {
+          content: [{ type: 'text', text: JSON.stringify(formatToolSuccess(resources, 'Retrieved server resources'), null, 2) }]
+        };
+      } catch (error: any) {
+        return {
+          content: [{ type: 'text', text: JSON.stringify(formatToolError(error, 'get_server_resources', { uuid: args.uuid }), null, 2) }]
+        };
+      }
     });
 
     this.tool('get_server_domains', 'Get domains for a specific Coolify server', {
       uuid: z.string()
     }, async (args, _extra) => {
-      const domains = await this.client.getServerDomains(args.uuid);
-      return {
-        content: [{ type: 'text', text: JSON.stringify(domains, null, 2) }]
-      };
+      try {
+        const domains = await this.client.getServerDomains(args.uuid);
+        return {
+          content: [{ type: 'text', text: JSON.stringify(formatToolSuccess(domains, `Retrieved ${domains.length} domains`, { count: domains.length }), null, 2) }]
+        };
+      } catch (error: any) {
+        return {
+          content: [{ type: 'text', text: JSON.stringify(formatToolError(error, 'get_server_domains', { uuid: args.uuid }), null, 2) }]
+        };
+      }
     });
 
     this.tool('validate_server', 'Validate a specific Coolify server', {
       uuid: z.string()
     }, async (args, _extra) => {
-      const validation = await this.client.validateServer(args.uuid);
-      return {
-        content: [{ type: 'text', text: JSON.stringify(validation, null, 2) }]
-      };
+      try {
+        const validation = await this.client.validateServer(args.uuid);
+        return {
+          content: [{ type: 'text', text: JSON.stringify(formatToolSuccess(validation, 'Server validation completed'), null, 2) }]
+        };
+      } catch (error: any) {
+        return {
+          content: [{ type: 'text', text: JSON.stringify(formatToolError(error, 'validate_server', { uuid: args.uuid }), null, 2) }]
+        };
+      }
     });
 
     this.tool('list_projects', 'List all Coolify projects', {}, async (_args, _extra) => {
-      const projects = await this.client.listProjects();
-      return {
-        content: [{ type: 'text', text: JSON.stringify(projects, null, 2) }]
-      };
+      try {
+        const projects = await this.client.listProjects();
+        return {
+          content: [{ type: 'text', text: JSON.stringify(formatToolSuccess(projects, `Retrieved ${projects.length} projects`, { count: projects.length }), null, 2) }]
+        };
+      } catch (error: any) {
+        return {
+          content: [{ type: 'text', text: JSON.stringify(formatToolError(error, 'list_projects'), null, 2) }]
+        };
+      }
     });
 
     this.tool('get_project', 'Get details about a specific Coolify project', {
       uuid: z.string()
     }, async (args, _extra) => {
-      const project = await this.client.getProject(args.uuid);
-      return {
-        content: [{ type: 'text', text: JSON.stringify(project, null, 2) }]
-      };
+      try {
+        const project = await this.client.getProject(args.uuid);
+        return {
+          content: [{ type: 'text', text: JSON.stringify(formatToolSuccess(project, `Retrieved project: ${project.name}`), null, 2) }]
+        };
+      } catch (error: any) {
+        return {
+          content: [{ type: 'text', text: JSON.stringify(formatToolError(error, 'get_project', { uuid: args.uuid }), null, 2) }]
+        };
+      }
     });
 
     this.tool('create_project', 'Create a new Coolify project', {
       name: z.string(),
       description: z.string().optional()
     }, async (args, _extra) => {
-      const result = await this.client.createProject({
-        name: args.name,
-        description: args.description
-      });
-      return {
-        content: [{ type: 'text', text: JSON.stringify(result, null, 2) }]
-      };
+      try {
+        const result = await this.client.createProject({
+          name: args.name,
+          description: args.description
+        });
+        return {
+          content: [{ type: 'text', text: JSON.stringify(formatToolSuccess(result, `Project '${args.name}' created successfully`), null, 2) }]
+        };
+      } catch (error: any) {
+        return {
+          content: [{ type: 'text', text: JSON.stringify(formatToolError(error, 'create_project', { name: args.name }), null, 2) }]
+        };
+      }
     });
 
     this.tool('update_project', 'Update an existing Coolify project', {
@@ -209,30 +258,48 @@ export class CoolifyMcpServer extends McpServer {
       name: z.string(),
       description: z.string().optional()
     }, async (args, _extra) => {
-      const { uuid, ...updateData } = args;
-      const result = await this.client.updateProject(uuid, updateData);
-      return {
-        content: [{ type: 'text', text: JSON.stringify(result, null, 2) }]
-      };
+      try {
+        const { uuid, ...updateData } = args;
+        const result = await this.client.updateProject(uuid, updateData);
+        return {
+          content: [{ type: 'text', text: JSON.stringify(formatToolSuccess(result, 'Project updated successfully'), null, 2) }]
+        };
+      } catch (error: any) {
+        return {
+          content: [{ type: 'text', text: JSON.stringify(formatToolError(error, 'update_project', { uuid: args.uuid }), null, 2) }]
+        };
+      }
     });
 
     this.tool('delete_project', 'Delete a Coolify project', {
       uuid: z.string()
     }, async (args, _extra) => {
-      const result = await this.client.deleteProject(args.uuid);
-      return {
-        content: [{ type: 'text', text: JSON.stringify(result, null, 2) }]
-      };
+      try {
+        const result = await this.client.deleteProject(args.uuid);
+        return {
+          content: [{ type: 'text', text: JSON.stringify(formatToolSuccess(result, 'Project deleted successfully'), null, 2) }]
+        };
+      } catch (error: any) {
+        return {
+          content: [{ type: 'text', text: JSON.stringify(formatToolError(error, 'delete_project', { uuid: args.uuid }), null, 2) }]
+        };
+      }
     });
 
     this.tool('get_project_environment', 'Get environment details for a Coolify project', {
       project_uuid: z.string(),
       environment_name_or_uuid: z.string()
     }, async (args, _extra) => {
-      const environment = await this.client.getProjectEnvironment(args.project_uuid, args.environment_name_or_uuid);
-      return {
-        content: [{ type: 'text', text: JSON.stringify(environment, null, 2) }]
-      };
+      try {
+        const environment = await this.client.getProjectEnvironment(args.project_uuid, args.environment_name_or_uuid);
+        return {
+          content: [{ type: 'text', text: JSON.stringify(formatToolSuccess(environment, `Retrieved environment: ${environment.name}`), null, 2) }]
+        };
+      } catch (error: any) {
+        return {
+          content: [{ type: 'text', text: JSON.stringify(formatToolError(error, 'get_project_environment', { project_uuid: args.project_uuid, environment: args.environment_name_or_uuid }), null, 2) }]
+        };
+      }
     });
 
     this.tool('list_databases', 'List all Coolify databases (summarized)', {
@@ -279,20 +346,32 @@ export class CoolifyMcpServer extends McpServer {
     this.tool('get_database', 'Get details about a specific Coolify database', {
       uuid: z.string()
     }, async (args, _extra) => {
-      const database = await this.client.getDatabase(args.uuid);
-      return {
-        content: [{ type: 'text', text: JSON.stringify(database, null, 2) }]
-      };
+      try {
+        const database = await this.client.getDatabase(args.uuid);
+        return {
+          content: [{ type: 'text', text: JSON.stringify(formatToolSuccess(database, `Retrieved database: ${database.name}`), null, 2) }]
+        };
+      } catch (error: any) {
+        return {
+          content: [{ type: 'text', text: JSON.stringify(formatToolError(error, 'get_database', { uuid: args.uuid }), null, 2) }]
+        };
+      }
     });
 
     this.tool('update_database', 'Update a Coolify database', {
       uuid: z.string(),
       data: z.record(z.unknown())
     }, async (args, _extra) => {
-      const result = await this.client.updateDatabase(args.uuid, args.data);
-      return {
-        content: [{ type: 'text', text: JSON.stringify(result, null, 2) }]
-      };
+      try {
+        const result = await this.client.updateDatabase(args.uuid, args.data);
+        return {
+          content: [{ type: 'text', text: JSON.stringify(formatToolSuccess(result, 'Database updated successfully'), null, 2) }]
+        };
+      } catch (error: any) {
+        return {
+          content: [{ type: 'text', text: JSON.stringify(formatToolError(error, 'update_database', { uuid: args.uuid }), null, 2) }]
+        };
+      }
     });
 
     const deleteOptionsSchema = {
@@ -306,19 +385,31 @@ export class CoolifyMcpServer extends McpServer {
       uuid: z.string(),
       options: z.object(deleteOptionsSchema).optional()
     }, async (args, _extra) => {
-      const result = await this.client.deleteDatabase(args.uuid, args.options);
-      return {
-        content: [{ type: 'text', text: JSON.stringify(result, null, 2) }]
-      };
+      try {
+        const result = await this.client.deleteDatabase(args.uuid, args.options);
+        return {
+          content: [{ type: 'text', text: JSON.stringify(formatToolSuccess(result, 'Database deleted successfully'), null, 2) }]
+        };
+      } catch (error: any) {
+        return {
+          content: [{ type: 'text', text: JSON.stringify(formatToolError(error, 'delete_database', { uuid: args.uuid, options: args.options }), null, 2) }]
+        };
+      }
     });
 
     this.tool('deploy_application', 'Deploy a Coolify application', {
       uuid: z.string()
     }, async (args, _extra) => {
-      const result = await this.client.deployApplication(args.uuid);
-      return {
-        content: [{ type: 'text', text: JSON.stringify(result, null, 2) }]
-      };
+      try {
+        const result = await this.client.deployApplication(args.uuid);
+        return {
+          content: [{ type: 'text', text: JSON.stringify(formatToolSuccess(result, 'Application deployment initiated'), null, 2) }]
+        };
+      } catch (error: any) {
+        return {
+          content: [{ type: 'text', text: JSON.stringify(formatToolError(error, 'deploy_application', { uuid: args.uuid }), null, 2) }]
+        };
+      }
     });
 
     this.tool('list_services', 'List all Coolify services (summarized)', {
@@ -365,10 +456,16 @@ export class CoolifyMcpServer extends McpServer {
     this.tool('get_service', 'Get details about a specific Coolify service', {
       uuid: z.string()
     }, async (args, _extra) => {
-      const service = await this.client.getService(args.uuid);
-      return {
-        content: [{ type: 'text', text: JSON.stringify(service, null, 2) }]
-      };
+      try {
+        const service = await this.client.getService(args.uuid);
+        return {
+          content: [{ type: 'text', text: JSON.stringify(formatToolSuccess(service, `Retrieved service: ${service.name}`), null, 2) }]
+        };
+      } catch (error: any) {
+        return {
+          content: [{ type: 'text', text: JSON.stringify(formatToolError(error, 'get_service', { uuid: args.uuid }), null, 2) }]
+        };
+      }
     });
 
     this.tool('create_service', 'Create a new Coolify service', {
@@ -382,20 +479,32 @@ export class CoolifyMcpServer extends McpServer {
       destination_uuid: z.string().optional(),
       instant_deploy: z.boolean().optional()
     }, async (args, _extra) => {
-      const result = await this.client.createService(args);
-      return {
-        content: [{ type: 'text', text: JSON.stringify(result, null, 2) }]
-      };
+      try {
+        const result = await this.client.createService(args);
+        return {
+          content: [{ type: 'text', text: JSON.stringify(formatToolSuccess(result, `Service '${args.type}' created successfully`), null, 2) }]
+        };
+      } catch (error: any) {
+        return {
+          content: [{ type: 'text', text: JSON.stringify(formatToolError(error, 'create_service', { type: args.type, project_uuid: args.project_uuid }), null, 2) }]
+        };
+      }
     });
 
     this.tool('delete_service', 'Delete a Coolify service', {
       uuid: z.string(),
       options: z.object(deleteOptionsSchema).optional()
     }, async (args, _extra) => {
-      const result = await this.client.deleteService(args.uuid, args.options);
-      return {
-        content: [{ type: 'text', text: JSON.stringify(result, null, 2) }]
-      };
+      try {
+        const result = await this.client.deleteService(args.uuid, args.options);
+        return {
+          content: [{ type: 'text', text: JSON.stringify(formatToolSuccess(result, 'Service deleted successfully'), null, 2) }]
+        };
+      } catch (error: any) {
+        return {
+          content: [{ type: 'text', text: JSON.stringify(formatToolError(error, 'delete_service', { uuid: args.uuid, options: args.options }), null, 2) }]
+        };
+      }
     });
 
     // Application Management Tools
@@ -520,20 +629,32 @@ export class CoolifyMcpServer extends McpServer {
       fqdn: z.string().optional(),
       environment_name: z.string().optional()
     }, async (args, _extra) => {
-      const result = await this.client.createApplication(args);
-      return {
-        content: [{ type: 'text', text: JSON.stringify(result, null, 2) }]
-      };
+      try {
+        const result = await this.client.createApplication(args);
+        return {
+          content: [{ type: 'text', text: JSON.stringify(formatToolSuccess(result, `Application '${args.name}' created successfully`), null, 2) }]
+        };
+      } catch (error: any) {
+        return {
+          content: [{ type: 'text', text: JSON.stringify(formatToolError(error, 'create_application', { name: args.name, project_uuid: args.project_uuid, server_uuid: args.server_uuid }), null, 2) }]
+        };
+      }
     });
 
     this.tool('delete_application', 'Delete a Coolify application', {
       uuid: z.string(),
       options: z.object(deleteOptionsSchema).optional()
     }, async (args, _extra) => {
-      const result = await this.client.deleteApplication(args.uuid, args.options);
-      return {
-        content: [{ type: 'text', text: JSON.stringify(result, null, 2) }]
-      };
+      try {
+        const result = await this.client.deleteApplication(args.uuid, args.options);
+        return {
+          content: [{ type: 'text', text: JSON.stringify(formatToolSuccess(result, 'Application deleted successfully'), null, 2) }]
+        };
+      } catch (error: any) {
+        return {
+          content: [{ type: 'text', text: JSON.stringify(formatToolError(error, 'delete_application', { uuid: args.uuid, options: args.options }), null, 2) }]
+        };
+      }
     });
 
     // Environment Variable Management
@@ -581,10 +702,16 @@ export class CoolifyMcpServer extends McpServer {
         is_literal: z.boolean().optional()
       }))
     }, async (args, _extra) => {
-      const result = await this.client.updateApplicationEnvironmentVariables(args.uuid, args.variables);
-      return {
-        content: [{ type: 'text', text: JSON.stringify(result, null, 2) }]
-      };
+      try {
+        const result = await this.client.updateApplicationEnvironmentVariables(args.uuid, args.variables);
+        return {
+          content: [{ type: 'text', text: JSON.stringify(formatToolSuccess(result, `Updated ${args.variables.length} environment variable(s)`), null, 2) }]
+        };
+      } catch (error: any) {
+        return {
+          content: [{ type: 'text', text: JSON.stringify(formatToolError(error, 'update_application_environment_variables', { uuid: args.uuid, count: args.variables.length }), null, 2) }]
+        };
+      }
     });
 
     // Docker Compose Service Management
@@ -598,10 +725,16 @@ export class CoolifyMcpServer extends McpServer {
       git_branch: z.string().optional(),
       instant_deploy: z.boolean().optional()
     }, async (args, _extra) => {
-      const result = await this.client.createDockerComposeService(args);
-      return {
-        content: [{ type: 'text', text: JSON.stringify(result, null, 2) }]
-      };
+      try {
+        const result = await this.client.createDockerComposeService(args);
+        return {
+          content: [{ type: 'text', text: JSON.stringify(formatToolSuccess(result, `Docker Compose service '${args.name}' created successfully`), null, 2) }]
+        };
+      } catch (error: any) {
+        return {
+          content: [{ type: 'text', text: JSON.stringify(formatToolError(error, 'create_docker_compose_service', { name: args.name, project_uuid: args.project_uuid }), null, 2) }]
+        };
+      }
     });
 
     // Deployment Management
@@ -670,114 +803,25 @@ export class CoolifyMcpServer extends McpServer {
       }
     });
 
-    this.tool('get_deployment', 'Get details about a specific deployment', {
-      uuid: z.string()
-    }, async (args, _extra) => {
-      try {
-        const deployment: any = await this.client.getDeployment(args.uuid);
-        
-        // Limit logs size to prevent token overflow
-        if (deployment.logs) {
-          if (typeof deployment.logs === 'string' && deployment.logs.length > 10000) {
-            deployment.logs = deployment.logs.substring(0, 10000) + '\n... [truncated - logs too large]';
-          } else if (Array.isArray(deployment.logs) && JSON.stringify(deployment.logs).length > 10000) {
-            deployment.logs = deployment.logs.slice(-20); // Keep last 20 log entries
-          }
-        }
-        
-        if (deployment.build_logs) {
-          if (typeof deployment.build_logs === 'string' && deployment.build_logs.length > 10000) {
-            deployment.build_logs = deployment.build_logs.substring(0, 10000) + '\n... [truncated - logs too large]';
-          }
-        }
-        
-        return {
-          content: [{ 
-            type: 'text', 
-            text: JSON.stringify({
-              success: true,
-              data: deployment,
-              message: 'Deployment details retrieved. Logs may be truncated if too large.'
-            }, null, 2) 
-          }]
-        };
-      } catch (error: any) {
-        return {
-          content: [{ 
-            type: 'text', 
-            text: JSON.stringify({
-              success: false,
-              error: {
-                message: error?.message || 'Failed to get deployment',
-                code: error?.code || error?.response?.status || 'UNKNOWN'
-              },
-              uuid: args.uuid
-            }, null, 2) 
-          }]
-        };
-      }
-    });
-
-    this.tool('cancel_deployment', 'Cancel a running deployment', {
-      uuid: z.string()
-    }, async (args, _extra) => {
-      const result = await this.client.cancelDeployment(args.uuid);
-      return {
-        content: [{ type: 'text', text: JSON.stringify(result, null, 2) }]
-      };
-    });
+    // Note: get_deployment and cancel_deployment are registered in mcp-tools-deployments.ts
 
     // Application Resources and Logs
     this.tool('get_application_resources', 'Get resource usage for an application', {
       uuid: z.string()
     }, async (args, _extra) => {
-      const resources = await this.client.getApplicationResources(args.uuid);
-      return {
-        content: [{ type: 'text', text: JSON.stringify(resources, null, 2) }]
-      };
-    });
-
-    this.tool('get_application_logs', 'Get logs for an application (supports pagination via lines parameter)', {
-      uuid: z.string(),
-      since: z.string().optional().describe('Start time for log filtering'),
-      until: z.string().optional().describe('End time for log filtering'),
-      lines: z.number().optional().describe('Number of log lines to return (default: 100, use for pagination)')
-    }, async (args, _extra) => {
       try {
-        const { uuid, ...options } = args;
-        const lines = options.lines || 100;
-        const logs = await this.client.getApplicationLogs(uuid, { ...options, lines });
-        
+        const resources = await this.client.getApplicationResources(args.uuid);
         return {
-          content: [{ 
-            type: 'text', 
-            text: JSON.stringify({
-              success: true,
-              data: logs,
-              pagination: {
-                lines_returned: logs.length,
-                lines_requested: lines,
-                hint: 'Use the "lines" parameter to control how many log entries to retrieve. For more logs, increase the lines parameter or use since/until for time-based filtering.'
-              }
-            }, null, 2) 
-          }]
+          content: [{ type: 'text', text: JSON.stringify(formatToolSuccess(resources, 'Retrieved application resources'), null, 2) }]
         };
       } catch (error: any) {
         return {
-          content: [{ 
-            type: 'text', 
-            text: JSON.stringify({
-              success: false,
-              error: {
-                message: error?.message || 'Failed to get logs',
-                code: error?.code || error?.response?.status || 'UNKNOWN'
-              },
-              uuid: args.uuid
-            }, null, 2) 
-          }]
+          content: [{ type: 'text', text: JSON.stringify(formatToolError(error, 'get_application_resources', { uuid: args.uuid }), null, 2) }]
         };
       }
     });
+
+    // Note: get_application_logs is registered in mcp-tools-deployments.ts
 
     // Full-Stack Deployment Tools
     this.tool('create_fullstack_project', 'Create a new project with common services (PostgreSQL, Redis, MinIO)', {
@@ -786,10 +830,16 @@ export class CoolifyMcpServer extends McpServer {
       domain: z.string().optional(),
       server_uuid: z.string()
     }, async (args, _extra) => {
-      const result = await this.client.createFullStackProject(args);
-      return {
-        content: [{ type: 'text', text: JSON.stringify(result, null, 2) }]
-      };
+      try {
+        const result = await this.client.createFullStackProject(args);
+        return {
+          content: [{ type: 'text', text: JSON.stringify(formatToolSuccess(result, `Full-stack project '${args.name}' created successfully`), null, 2) }]
+        };
+      } catch (error: any) {
+        return {
+          content: [{ type: 'text', text: JSON.stringify(formatToolError(error, 'create_fullstack_project', { name: args.name, server_uuid: args.server_uuid }), null, 2) }]
+        };
+      }
     });
 
     this.tool('deploy_infrastructure_stack', 'Deploy common infrastructure services (PostgreSQL, Redis, MinIO)', {
@@ -808,10 +858,16 @@ export class CoolifyMcpServer extends McpServer {
         domain: args.domain,
         environment_variables: args.environment_variables
       };
-      const result = await this.client.deployInfrastructureStack(args.project_uuid, args.server_uuid, config);
-      return {
-        content: [{ type: 'text', text: JSON.stringify(result, null, 2) }]
-      };
+      try {
+        const result = await this.client.deployInfrastructureStack(args.project_uuid, args.server_uuid, config);
+        return {
+          content: [{ type: 'text', text: JSON.stringify(formatToolSuccess(result, 'Infrastructure stack deployed successfully'), null, 2) }]
+        };
+      } catch (error: any) {
+        return {
+          content: [{ type: 'text', text: JSON.stringify(formatToolError(error, 'deploy_infrastructure_stack', { project_uuid: args.project_uuid, server_uuid: args.server_uuid, config }), null, 2) }]
+        };
+      }
     });
 
     // Resources Management
