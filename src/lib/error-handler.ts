@@ -139,14 +139,50 @@ export class ErrorHandler {
     }
 
     // Generic error fallback
+    // CRITICAL: Preserve ALL error details including validation errors from Coolify API
+    const details: Record<string, any> = {
+      originalMessage: error.message,
+      errorType: typeof error,
+      errorConstructor: error.constructor?.name
+    };
+
+    // CRITICAL: Extract validation errors from Coolify API response
+    // Coolify returns validation errors in response.data.errors
+    if (error.response?.data?.errors) {
+      details.VALIDATION_ERRORS = error.response.data.errors;
+      details.validationErrors = error.response.data.errors; // Also keep camelCase version
+      log('✅ Found validation errors in error.response.data.errors:', error.response.data.errors);
+    } else if (error.details?.errors) {
+      details.VALIDATION_ERRORS = error.details.errors;
+      details.validationErrors = error.details.errors;
+      log('✅ Found validation errors in error.details.errors:', error.details.errors);
+    } else if (error.errors) {
+      details.VALIDATION_ERRORS = error.errors;
+      details.validationErrors = error.errors;
+      log('✅ Found validation errors in error.errors:', error.errors);
+    } else {
+      log('❌ No validation errors found in error object');
+    }
+
+    // Include full response data for debugging
+    if (error.response?.data) {
+      details.fullApiResponse = error.response.data;
+    }
+
+    // Include HTTP status if available
+    if (error.response?.status) {
+      details.httpStatus = error.response.status;
+    }
+
+    // Include any additional error details
+    if (error.details && typeof error.details === 'object') {
+      Object.assign(details, error.details);
+    }
+
     return {
       code: 'UNKNOWN_ERROR',
       message: error.message || 'An unknown error occurred',
-      details: { 
-        originalMessage: error.message,
-        errorType: typeof error,
-        errorConstructor: error.constructor?.name
-      },
+      details,
       suggestions: [
         'Check the error details for more information',
         'Try the operation again',
