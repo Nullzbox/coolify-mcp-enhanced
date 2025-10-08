@@ -466,20 +466,31 @@ export class CoolifyClient {
   async createPrivateGithubAppApplication(data: CreatePrivateGithubAppApplicationRequest): Promise<{ uuid: string }> {
     log('Creating private GitHub app application with data:', JSON.stringify(data, null, 2));
 
-    // Verify the GitHub App exists (optional validation)
+    // CRITICAL: Resolve github_app_uuid to source_id
+    // Based on existing application structure: uses source_id (number) + source_type
     const githubApp = await this.getGithubAppById(data.github_app_uuid);
     if (!githubApp) {
       throw new Error(`GitHub App not found with UUID: ${data.github_app_uuid}. Use list_github_apps to see available apps.`);
     }
 
-    log(`Found GitHub App: ${githubApp.name} (ID: ${githubApp.id}, UUID: ${githubApp.uuid})`);
+    log(`Resolved GitHub App UUID ${data.github_app_uuid} to ID ${githubApp.id} (${githubApp.name})`);
 
-    // Use the /applications/private-github-app endpoint directly
-    // This endpoint expects github_app_uuid as-is (no transformation needed)
-    // Source: Coolify OpenAPI spec and issue #4864
-    return this.request<{ uuid: string }>('/applications/private-github-app', {
+    // Transform request: remove github_app_uuid, add source_id + source_type
+    // This matches the structure of existing applications
+    const requestData: any = {
+      ...data,
+      source_id: githubApp.id,
+      source_type: 'App\\Models\\GithubApp',
+    };
+    delete requestData.github_app_uuid;
+
+    log('Transformed request data:', JSON.stringify(requestData, null, 2));
+
+    // Use /applications/public endpoint (works for both public and private repos)
+    // The source_type determines if it's GitHub App, Deploy Key, etc.
+    return this.request<{ uuid: string }>('/applications/public', {
       method: 'POST',
-      body: JSON.stringify(data),
+      body: JSON.stringify(requestData),
     });
   }
 
