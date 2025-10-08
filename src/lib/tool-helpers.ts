@@ -36,12 +36,37 @@ export function formatToolError(error: any, operation: string, additionalContext
   const errorMessage = error?.message || error?.toString() || 'Unknown error occurred';
   const errorCode = error?.code || error?.response?.status?.toString() || 'UNKNOWN_ERROR';
 
+  // Extract all available error details
+  const details: any = {
+    ...additionalContext
+  };
+
+  // Include API response data if available
+  if (error?.response?.data) {
+    details.apiResponse = error.response.data;
+  }
+
+  // Include error details if available
+  if (error?.details) {
+    details.errorDetails = error.details;
+  }
+
+  // Include validation errors if present
+  if (error?.response?.data?.errors) {
+    details.validationErrors = error.response.data.errors;
+  }
+
+  // Include any other error properties
+  if (error?.response?.data?.message && error.response.data.message !== errorMessage) {
+    details.apiMessage = error.response.data.message;
+  }
+
   return {
     success: false,
     error: {
       message: errorMessage,
       code: errorCode,
-      details: error?.response?.data || error?.details || additionalContext,
+      details: Object.keys(details).length > 0 ? details : undefined,
       stack: process.env.NODE_ENV === 'development' ? error?.stack : undefined
     },
     operation,

@@ -83,7 +83,19 @@ export class CoolifyClient {
             const error = data as ErrorResponse;
             const errorMessage = error.message || `HTTP ${response.status}: ${response.statusText}`;
             log(`API error: ${response.status} - ${errorMessage}`);
-            throw new Error(errorMessage);
+            log(`API error details:`, JSON.stringify(data, null, 2));
+
+            // Create enhanced error with full API response details
+            const enhancedError: any = new Error(errorMessage);
+            enhancedError.response = {
+              status: response.status,
+              statusText: response.statusText,
+              data: data
+            };
+            enhancedError.code = (data as any).code || error.error || response.status.toString();
+            enhancedError.details = data;
+
+            throw enhancedError;
           }
 
           log(`Request successful: ${path}`);
@@ -417,6 +429,7 @@ export class CoolifyClient {
   }
 
   async createApplication(data: CreateApplicationRequest): Promise<{ uuid: string }> {
+    log('Creating public application with data:', JSON.stringify(data, null, 2));
     return this.request<{ uuid: string }>('/applications/public', {
       method: 'POST',
       body: JSON.stringify(data),
@@ -424,6 +437,7 @@ export class CoolifyClient {
   }
 
   async createPrivateGithubAppApplication(data: CreatePrivateGithubAppApplicationRequest): Promise<{ uuid: string }> {
+    log('Creating private GitHub app application with data:', JSON.stringify(data, null, 2));
     return this.request<{ uuid: string }>('/applications/private-github-app', {
       method: 'POST',
       body: JSON.stringify(data),
@@ -431,6 +445,7 @@ export class CoolifyClient {
   }
 
   async createPrivateDeployKeyApplication(data: CreatePrivateDeployKeyApplicationRequest): Promise<{ uuid: string }> {
+    log('Creating private deploy key application with data:', JSON.stringify(data, null, 2));
     return this.request<{ uuid: string }>('/applications/private-deploy-key', {
       method: 'POST',
       body: JSON.stringify(data),
