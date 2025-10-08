@@ -411,6 +411,56 @@ export interface CreateApplicationRequest {
   preview_url_template?: string;
 }
 
+export interface CreatePrivateGithubAppApplicationRequest {
+  name: string;
+  description?: string;
+  project_uuid: string;
+  environment_name: string;
+  server_uuid: string;
+  github_app_uuid: string;
+  git_repository: string;
+  git_branch: string;
+  destination_uuid?: string;
+  build_pack?: 'nixpacks' | 'dockerfile' | 'docker-compose' | 'static';
+  dockerfile_location?: string;
+  docker_compose_location?: string;
+  install_command?: string;
+  build_command?: string;
+  start_command?: string;
+  base_directory?: string;
+  publish_directory?: string;
+  ports_exposes?: string;
+  domains?: string;
+  health_check_enabled?: boolean;
+  limits_memory?: string;
+  limits_cpus?: string;
+}
+
+export interface CreatePrivateDeployKeyApplicationRequest {
+  name: string;
+  description?: string;
+  project_uuid: string;
+  environment_name: string;
+  server_uuid: string;
+  git_repository: string;
+  git_branch: string;
+  private_key_uuid?: string;
+  destination_uuid?: string;
+  build_pack?: 'nixpacks' | 'dockerfile' | 'docker-compose' | 'static';
+  dockerfile_location?: string;
+  docker_compose_location?: string;
+  install_command?: string;
+  build_command?: string;
+  start_command?: string;
+  base_directory?: string;
+  publish_directory?: string;
+  ports_exposes?: string;
+  domains?: string;
+  health_check_enabled?: boolean;
+  limits_memory?: string;
+  limits_cpus?: string;
+}
+
 export interface EnvironmentVariable {
   id: number;
   key: string;

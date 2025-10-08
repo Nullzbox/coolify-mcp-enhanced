@@ -616,7 +616,7 @@ export class CoolifyMcpServer extends McpServer {
       }
     });
 
-    this.tool('create_application', 'Create a new Coolify application', {
+    this.tool('create_application', 'Create a new Coolify application from a public repository', {
       name: z.string(),
       description: z.string().optional(),
       project_uuid: z.string(),
@@ -640,6 +640,76 @@ export class CoolifyMcpServer extends McpServer {
       } catch (error: any) {
         return {
           content: [{ type: 'text', text: JSON.stringify(formatToolError(error, 'create_application', { name: args.name, project_uuid: args.project_uuid, server_uuid: args.server_uuid }), null, 2) }]
+        };
+      }
+    });
+
+    this.tool('create_application_private_github_app', 'Create a new Coolify application from a private repository via GitHub App', {
+      name: z.string(),
+      description: z.string().optional(),
+      project_uuid: z.string(),
+      server_uuid: z.string(),
+      environment_name: z.string(),
+      github_app_uuid: z.string(),
+      git_repository: z.string(),
+      git_branch: z.string(),
+      destination_uuid: z.string().optional(),
+      build_pack: z.enum(['nixpacks', 'dockerfile', 'docker-compose', 'static']).optional(),
+      dockerfile_location: z.string().optional(),
+      docker_compose_location: z.string().optional(),
+      base_directory: z.string().optional(),
+      install_command: z.string().optional(),
+      build_command: z.string().optional(),
+      start_command: z.string().optional(),
+      ports_exposes: z.string().optional(),
+      domains: z.string().optional(),
+      health_check_enabled: z.boolean().optional(),
+      limits_memory: z.string().optional(),
+      limits_cpus: z.string().optional()
+    }, async (args, _extra) => {
+      try {
+        const result = await this.client.createPrivateGithubAppApplication(args);
+        return {
+          content: [{ type: 'text', text: JSON.stringify(formatToolSuccess(result, `Private GitHub App application '${args.name}' created successfully`), null, 2) }]
+        };
+      } catch (error: any) {
+        return {
+          content: [{ type: 'text', text: JSON.stringify(formatToolError(error, 'create_application_private_github_app', { name: args.name, project_uuid: args.project_uuid, server_uuid: args.server_uuid, github_app_uuid: args.github_app_uuid }), null, 2) }]
+        };
+      }
+    });
+
+    this.tool('create_application_private_deploy_key', 'Create a new Coolify application from a private repository via Deploy Key', {
+      name: z.string(),
+      description: z.string().optional(),
+      project_uuid: z.string(),
+      server_uuid: z.string(),
+      environment_name: z.string(),
+      git_repository: z.string(),
+      git_branch: z.string(),
+      private_key_uuid: z.string().optional(),
+      destination_uuid: z.string().optional(),
+      build_pack: z.enum(['nixpacks', 'dockerfile', 'docker-compose', 'static']).optional(),
+      dockerfile_location: z.string().optional(),
+      docker_compose_location: z.string().optional(),
+      base_directory: z.string().optional(),
+      install_command: z.string().optional(),
+      build_command: z.string().optional(),
+      start_command: z.string().optional(),
+      ports_exposes: z.string().optional(),
+      domains: z.string().optional(),
+      health_check_enabled: z.boolean().optional(),
+      limits_memory: z.string().optional(),
+      limits_cpus: z.string().optional()
+    }, async (args, _extra) => {
+      try {
+        const result = await this.client.createPrivateDeployKeyApplication(args);
+        return {
+          content: [{ type: 'text', text: JSON.stringify(formatToolSuccess(result, `Private Deploy Key application '${args.name}' created successfully`), null, 2) }]
+        };
+      } catch (error: any) {
+        return {
+          content: [{ type: 'text', text: JSON.stringify(formatToolError(error, 'create_application_private_deploy_key', { name: args.name, project_uuid: args.project_uuid, server_uuid: args.server_uuid, git_repository: args.git_repository }), null, 2) }]
         };
       }
     });

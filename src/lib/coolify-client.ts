@@ -17,6 +17,8 @@ import {
   DeleteServiceOptions,
   Application,
   CreateApplicationRequest,
+  CreatePrivateGithubAppApplicationRequest,
+  CreatePrivateDeployKeyApplicationRequest,
   EnvironmentVariable,
   EnvironmentVariableUpdate,
   CreateDockerComposeServiceRequest,
@@ -416,6 +418,20 @@ export class CoolifyClient {
 
   async createApplication(data: CreateApplicationRequest): Promise<{ uuid: string }> {
     return this.request<{ uuid: string }>('/applications/public', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async createPrivateGithubAppApplication(data: CreatePrivateGithubAppApplicationRequest): Promise<{ uuid: string }> {
+    return this.request<{ uuid: string }>('/applications/private-github-app', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async createPrivateDeployKeyApplication(data: CreatePrivateDeployKeyApplicationRequest): Promise<{ uuid: string }> {
+    return this.request<{ uuid: string }>('/applications/private-deploy-key', {
       method: 'POST',
       body: JSON.stringify(data),
     });
