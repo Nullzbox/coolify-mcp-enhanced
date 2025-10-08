@@ -57,4 +57,13 @@ testff*
 *.key
 *.cert
 .env.*
-config.local.json 
+config.local.json
+
+# Configuration files with secrets (NEVER commit these!)
+CONFIGURATION_*.md
+!CONFIGURATION*.template.md
+*credentials*.json
+*secrets*.yaml
+*secrets*.yml
+*.config.local.js
+.secrets/ 
