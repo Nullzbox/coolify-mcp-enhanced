@@ -86,6 +86,11 @@ export class CoolifyClient {
             log(`API error: ${response.status} - ${errorMessage}`);
             log(`API error details:`, JSON.stringify(data, null, 2));
 
+            // CRITICAL: Extract validation errors if present
+            if ((data as any).errors) {
+              log(`Validation errors:`, JSON.stringify((data as any).errors, null, 2));
+            }
+
             // Create enhanced error with full API response details
             const enhancedError: any = new Error(errorMessage);
             enhancedError.response = {
@@ -95,6 +100,11 @@ export class CoolifyClient {
             };
             enhancedError.code = (data as any).code || error.error || response.status.toString();
             enhancedError.details = data;
+
+            // CRITICAL: Also add errors directly for easier access
+            if ((data as any).errors) {
+              enhancedError.errors = (data as any).errors;
+            }
 
             throw enhancedError;
           }

@@ -41,19 +41,38 @@ export function formatToolError(error: any, operation: string, additionalContext
     ...additionalContext
   };
 
-  // Include API response data if available
+  // CRITICAL: Extract validation errors from ALL possible locations
+  // Coolify API returns validation errors in response.data.errors
+  let validationErrors = null;
+
+  // Try multiple paths to find validation errors
+  if (error?.response?.data?.errors) {
+    validationErrors = error.response.data.errors;
+  } else if (error?.details?.errors) {
+    validationErrors = error.details.errors;
+  } else if (error?.errors) {
+    validationErrors = error.errors;
+  }
+
+  // If we found validation errors, make them VERY visible at the top level
+  if (validationErrors) {
+    details.VALIDATION_ERRORS = validationErrors;
+    details.validationErrors = validationErrors; // Keep for backwards compatibility
+  }
+
+  // Include full API response for debugging
   if (error?.response?.data) {
-    details.apiResponse = error.response.data;
+    details.fullApiResponse = error.response.data;
   }
 
   // Include error details if available
   if (error?.details) {
-    details.errorDetails = error.details;
+    details.apiDetails = error.details;
   }
 
-  // Include validation errors if present
-  if (error?.response?.data?.errors) {
-    details.validationErrors = error.response.data.errors;
+  // Include HTTP status
+  if (error?.response?.status) {
+    details.httpStatus = error.response.status;
   }
 
   // Include any other error properties
