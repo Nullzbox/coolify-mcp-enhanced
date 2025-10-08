@@ -1,15 +1,20 @@
-# Debug MCP Coolify - v1.4.2
+# Debug MCP Coolify - v1.4.3
 
-## ✅ Problème résolu : GitHub App UUID → source_id
+## ✅ FIX DÉFINITIF : Endpoints API Coolify corrects
 
-**Version 1.4.2** résout automatiquement l'UUID de la GitHub App en ID numérique interne.
+**Version 1.4.3** utilise les endpoints API Coolify OFFICIELS.
 
-Le MCP récupère maintenant:
-1. Liste les GitHub Apps disponibles
-2. Résout l'UUID fourni en ID numérique
-3. Utilise `source_id` et `source_type` dans la requête API
+### Corrections appliquées
 
-Vous n'avez **plus besoin** de trouver manuellement l'ID de la GitHub App.
+1. **Endpoint GitHub Apps** : `/api/v1/security/keys` ✓
+   - Source : Coolify issue #4864 + OpenAPI spec
+   - Retourne toutes les security keys (incluant GitHub Apps)
+
+2. **Endpoint création application privée** : `/api/v1/applications/private-github-app` ✓
+   - Utilise `github_app_uuid` directement (pas de transformation)
+   - Source : Coolify OpenAPI specification
+
+3. **Validation** : Vérifie que la GitHub App existe avant création
 
 ## Activer les logs de debug
 
@@ -166,27 +171,31 @@ Avec `DEBUG=coolify:*`, voici ce que vous verrez lors de la création d'applicat
 coolify:client Creating private GitHub app application with data: {
   "name": "backend-medusa",
   "github_app_uuid": "frail-falcon-i4gwsow8sk48ss8wk",
+  "git_repository": "Nullzbox/ThearAbianPerfumes",
   ...
 }
 
 coolify:client Making request to: https://coolify/api/v1/security/keys
-coolify:client Resolved GitHub App UUID frail-falcon-i4gwsow8sk48ss8wk to ID 1
+coolify:client Request successful: /security/keys
 
-coolify:client Transformed request data: {
-  "name": "backend-medusa",
-  "source_id": 1,
-  "source_type": "App\\Models\\GithubApp",
-  ...
-}
+coolify:client Found GitHub App: My GitHub App (ID: 1, UUID: frail-falcon-i4gwsow8sk48ss8wk)
 
-coolify:client Making request to: https://coolify/api/v1/applications/public
-coolify:client Request successful: /applications/public
+coolify:client Making request to: https://coolify/api/v1/applications/private-github-app
+coolify:client Request successful: /applications/private-github-app
 ```
+
+**Note** : L'UUID fourni est envoyé DIRECTEMENT à l'API (pas de transformation).
 
 ## Versions
 
-- v1.4.2 : GitHub App UUID automatique resolution + nouveaux tools (list_github_apps, get_github_app)
+- v1.4.3 : **FIX DÉFINITIF** - Endpoints API officiels Coolify (/security/keys, /applications/private-github-app)
+- v1.4.2 : GitHub App UUID validation + nouveaux tools (list_github_apps, get_github_app)
 - v1.4.1 : Enhanced error reporting avec détails de validation complets
 - v1.4.0 : Support repos privés (GitHub App + Deploy Key)
 - v1.3.0 : Fix endpoint critique
 - v1.1.0 : Error handling standardisé
+
+### Sources officielles v1.4.3
+- Coolify GitHub Issue #4864: github_app_uuid clarification
+- Coolify OpenAPI spec (v4.x): `/applications/private-github-app` endpoint
+- Coolify API: `/security/keys` for listing GitHub Apps

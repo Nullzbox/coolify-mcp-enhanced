@@ -438,10 +438,10 @@ export class CoolifyClient {
   }
 
   async listGithubApps(): Promise<GithubApp[]> {
-    // Try the GitHub Apps endpoint
-    // Note: The exact endpoint may vary based on Coolify version
-    // Common patterns: /security/github-apps or /github-apps
-    return this.request<GithubApp[]>('/security/github-apps');
+    // /security/keys returns all security keys including GitHub Apps
+    // Source: https://github.com/coollabsio/coolify/issues/4864
+    // This is the CORRECT endpoint confirmed by Coolify issue tracker
+    return this.request<GithubApp[]>('/security/keys');
   }
 
   async getGithubAppById(idOrUuid: string | number): Promise<GithubApp | null> {
@@ -466,29 +466,20 @@ export class CoolifyClient {
   async createPrivateGithubAppApplication(data: CreatePrivateGithubAppApplicationRequest): Promise<{ uuid: string }> {
     log('Creating private GitHub app application with data:', JSON.stringify(data, null, 2));
 
-    // Resolve github_app_uuid to source_id
+    // Verify the GitHub App exists (optional validation)
     const githubApp = await this.getGithubAppById(data.github_app_uuid);
     if (!githubApp) {
-      throw new Error(`GitHub App not found with UUID: ${data.github_app_uuid}`);
+      throw new Error(`GitHub App not found with UUID: ${data.github_app_uuid}. Use list_github_apps to see available apps.`);
     }
 
-    log(`Resolved GitHub App UUID ${data.github_app_uuid} to ID ${githubApp.id}`);
+    log(`Found GitHub App: ${githubApp.name} (ID: ${githubApp.id}, UUID: ${githubApp.uuid})`);
 
-    // Transform the request to use source_id and source_type
-    const requestData: any = {
-      ...data,
-      source_id: githubApp.id,
-      source_type: 'App\\Models\\GithubApp',
-    };
-
-    // Remove github_app_uuid as it's not needed in the API request
-    delete requestData.github_app_uuid;
-
-    log('Transformed request data:', JSON.stringify(requestData, null, 2));
-
-    return this.request<{ uuid: string }>('/applications/public', {
+    // Use the /applications/private-github-app endpoint directly
+    // This endpoint expects github_app_uuid as-is (no transformation needed)
+    // Source: Coolify OpenAPI spec and issue #4864
+    return this.request<{ uuid: string }>('/applications/private-github-app', {
       method: 'POST',
-      body: JSON.stringify(requestData),
+      body: JSON.stringify(data),
     });
   }
 
