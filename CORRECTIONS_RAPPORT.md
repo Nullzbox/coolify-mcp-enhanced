@@ -1,7 +1,7 @@
 # 📋 Rapport de Corrections - Coolify MCP Enhanced
 
 **Date**: 2025-01-08
-**Version**: 1.1.0
+**Version**: 1.2.0
 **Status**: ✅ **PRODUCTION READY**
 
 ---
@@ -58,6 +58,59 @@ this.tool('create_application', ..., async (args) => {
   }
 });
 ```
+
+---
+
+## 🐛 Bug Critique #2 Corrigé (v1.2.0)
+
+### ❌ Problème: RESOURCE_NOT_FOUND lors de create_application
+
+Lors de l'appel de `create_application`, l'API Coolify retournait:
+```json
+{
+  "success": false,
+  "error": {
+    "message": "The requested resource was not found",
+    "code": "RESOURCE_NOT_FOUND"
+  }
+}
+```
+
+### ✅ Cause Identifiée
+Le tool `create_application` manquait des paramètres critiques requis par l'API Coolify:
+- ❌ **Manquant**: `environment_uuid` - UUID de l'environnement (production, staging, etc.)
+- ❌ **Manquant**: `destination_uuid` - UUID de la destination Docker
+- ❌ **Manquant**: `base_directory` - Répertoire de base du repository Git
+
+L'API Coolify nécessite `environment_uuid` (pas seulement `environment_name`), similaire à `create_service`.
+
+### ✅ Solution Appliquée
+```typescript
+// AVANT (INCOMPLET)
+this.tool('create_application', ..., {
+  name: z.string(),
+  project_uuid: z.string(),
+  server_uuid: z.string(),
+  environment_name: z.string().optional(),  // ❌ Insuffisant
+  // ... autres champs
+})
+
+// APRÈS (COMPLET)
+this.tool('create_application', ..., {
+  name: z.string(),
+  project_uuid: z.string(),
+  server_uuid: z.string(),
+  environment_name: z.string().optional(),
+  environment_uuid: z.string().optional(),    // ✅ Ajouté
+  destination_uuid: z.string().optional(),   // ✅ Ajouté
+  base_directory: z.string().optional(),      // ✅ Ajouté
+  // ... autres champs
+})
+```
+
+**Fichier modifié**: `src/lib/mcp-server.ts` (lignes 619-634)
+
+**Impact**: L'API Coolify peut maintenant créer des applications correctement avec tous les paramètres requis.
 
 ---
 

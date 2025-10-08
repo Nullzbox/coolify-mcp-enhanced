@@ -621,13 +621,16 @@ export class CoolifyMcpServer extends McpServer {
       description: z.string().optional(),
       project_uuid: z.string(),
       server_uuid: z.string(),
+      environment_name: z.string().optional(),
+      environment_uuid: z.string().optional(),
+      destination_uuid: z.string().optional(),
       git_repository: z.string().optional(),
       git_branch: z.string().optional(),
       build_pack: z.enum(['nixpacks', 'dockerfile', 'docker-compose', 'static']).optional(),
       dockerfile_location: z.string().optional(),
       docker_compose_location: z.string().optional(),
-      fqdn: z.string().optional(),
-      environment_name: z.string().optional()
+      base_directory: z.string().optional(),
+      fqdn: z.string().optional()
     }, async (args, _extra) => {
       try {
         const result = await this.client.createApplication(args);
