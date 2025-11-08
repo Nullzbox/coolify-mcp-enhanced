@@ -39,7 +39,7 @@ This MCP now includes a **local config file** workaround:
    ```bash
    # Create coolify.config.local.json in the project root
    {
-     "githubAppUuid": "h8wwgws08cs4k44wcgk4ck4s"  // Your UUID from step 1
+     "githubAppUuid": "your-real-uuid-from-ui-url"  // Your UUID from step 1
    }
    ```
 
@@ -76,7 +76,7 @@ The MCP will now automatically use the correct UUID from your config file, bypas
 **Testing Results:**
 ```bash
 # Version check
-curl http://nullbase.xyz:8000/api/v1/version
+curl http://your-coolify-instance:8000/api/v1/version
 # Returns: 4.0.0-beta.434
 
 # Working endpoint
