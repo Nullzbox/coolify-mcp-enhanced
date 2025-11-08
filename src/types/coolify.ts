@@ -1,6 +1,7 @@
 export interface CoolifyConfig {
   baseUrl: string;
   accessToken: string;
+  githubAppUuid?: string; // Optional: Override GitHub App UUID from UI instead of API
 }
 
 export interface ServerInfo {

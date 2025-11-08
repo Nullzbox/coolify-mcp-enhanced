@@ -17,29 +17,54 @@
 - Occurs even with valid `github_app_uuid` that exists in `/api/v1/security/keys`
 
 **Root Cause:**
-- The endpoint exists in the codebase but has validation issues in beta versions
+- The `/api/v1/security/keys` endpoint returns a **different UUID** than what the `/applications/private-github-app` endpoint expects
+- Issue [#4864](https://github.com/coollabsio/coolify/issues/4864): `github_app_uuid` from API ≠ actual GitHub App UUID
+- The correct UUID is only visible in the Coolify UI URL: `http://your-coolify/source/github/CORRECT-UUID-HERE`
 - Related GitHub Issues:
-  - [#4864](https://github.com/coollabsio/coolify/issues/4864) - github_app_uuid & SecurityKey.uuid mismatch
+  - [#4864](https://github.com/coollabsio/coolify/issues/4864) - github_app_uuid & SecurityKey.uuid mismatch (OPEN)
+  - [#3209](https://github.com/coollabsio/coolify/issues/3209) - Unable to identify correct github_app_uuid
   - [#5467](https://github.com/coollabsio/coolify/issues/5467) - Private GitHub apps API timeouts
   - [#5540](https://github.com/coollabsio/coolify/issues/5540) - validateDataApplications method missing
 
-**Workaround:**
-1. **Use `/applications/public` endpoint** (creates app but with `source_id: 0`)
-   - Works but app cannot access private repositories
-   - Cannot modify `source_id` via PATCH (field rejected)
+**✅ WORKING SOLUTION (v1.4.7+):**
 
-2. **Create applications manually via Coolify UI** ✅ RECOMMENDED
-   - Fastest and most reliable method
+This MCP now includes a **local config file** workaround:
+
+1. **Get the correct UUID from Coolify UI:**
+   - Go to your Coolify dashboard
+   - Navigate to: Resources → Sources → GitHub Apps → Your GitHub App
+   - Copy the UUID from the browser URL: `http://your-coolify/source/github/YOUR-UUID-HERE`
+
+2. **Create local config file:**
+   ```bash
+   # Create coolify.config.local.json in the project root
+   {
+     "githubAppUuid": "h8wwgws08cs4k44wcgk4ck4s"  // Your UUID from step 1
+   }
+   ```
+
+3. **Rebuild the MCP:**
+   ```bash
+   npm run build
+   ```
+
+4. **Restart Claude Desktop** to load the new config
+
+The MCP will now automatically use the correct UUID from your config file, bypassing the broken API endpoint.
+
+**Alternative Workarounds:**
+1. **Create applications manually via Coolify UI**
+   - Fastest for one-time deployments
    - UI properly links GitHub App to application
 
-3. **Update Coolify to stable version**
+2. **Update Coolify to stable version** (when available)
    ```bash
    curl -fsSL https://cdn.coollabs.io/coolify/install.sh | bash
    ```
 
 **MCP Tool Status:**
 - ✅ `create_application` (public repos) - WORKS
-- ❌ `create_application_private_github_app` - BROKEN in beta versions
+- ✅ `create_application_private_github_app` - WORKS with local config workaround (v1.4.7+)
 - ✅ All other tools (list, get, update, delete, deploy) - WORK
 
 **Verified Working:**

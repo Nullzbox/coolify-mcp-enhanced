@@ -41,6 +41,7 @@ const log = debug('coolify:client');
 export class CoolifyClient {
   private baseUrl: string;
   private accessToken: string;
+  private githubAppUuid?: string; // Optional: Override UUID from config instead of API
 
   constructor(config: CoolifyConfig) {
     if (!config.baseUrl) {
@@ -51,6 +52,13 @@ export class CoolifyClient {
     }
     this.baseUrl = config.baseUrl.replace(/\/$/, '');
     this.accessToken = config.accessToken;
+    this.githubAppUuid = config.githubAppUuid;
+
+    if (this.githubAppUuid && this.githubAppUuid.length >= 8) {
+      log(`Using GitHub App UUID from config: ${this.githubAppUuid.substring(0, 8)}...`);
+    } else if (this.githubAppUuid) {
+      log(`Using GitHub App UUID from config: ${this.githubAppUuid}`);
+    }
   }
 
   private async request<T>(path: string, options: RequestInit = {}): Promise<T> {
@@ -494,20 +502,30 @@ export class CoolifyClient {
   async createPrivateGithubAppApplication(data: CreatePrivateGithubAppApplicationRequest): Promise<{ uuid: string }> {
     log('Creating private GitHub app application with data:', JSON.stringify(data, null, 2));
 
-    // Verify GitHub App exists
-    const githubApp = await this.getGithubAppById(data.github_app_uuid);
-    if (!githubApp) {
-      throw new Error(`GitHub App not found with UUID: ${data.github_app_uuid}. Use list_github_apps to see available apps.`);
+    // Use configured UUID if available (workaround for Coolify beta bug where API returns wrong UUID)
+    const githubAppUuid = this.githubAppUuid || data.github_app_uuid;
+
+    if (this.githubAppUuid && this.githubAppUuid !== data.github_app_uuid) {
+      log(`🔄 Using GitHub App UUID from config (${githubAppUuid}) instead of provided UUID (${data.github_app_uuid})`);
+      log('   This is a workaround for Coolify beta bug #4864 where API returns incorrect UUID');
     }
 
-    log(`Found GitHub App: ID ${githubApp.id}, UUID ${data.github_app_uuid} (${githubApp.name})`);
+    // Verify GitHub App exists (skip if using config UUID as it's manually verified)
+    if (!this.githubAppUuid) {
+      const githubApp = await this.getGithubAppById(data.github_app_uuid);
+      if (!githubApp) {
+        throw new Error(`GitHub App not found with UUID: ${data.github_app_uuid}. Use list_github_apps to see available apps.`);
+      }
+      log(`Found GitHub App: ID ${githubApp.id}, UUID ${data.github_app_uuid} (${githubApp.name})`);
+    }
 
-    // Try sending github_app_uuid directly without transformation
-    log('Sending request with github_app_uuid:', data.github_app_uuid);
+    // Send request with correct UUID
+    log('Sending request with github_app_uuid:', githubAppUuid);
+    const requestData = { ...data, github_app_uuid: githubAppUuid };
 
     return this.request<{ uuid: string }>('/applications/private-github-app', {
       method: 'POST',
-      body: JSON.stringify(data),
+      body: JSON.stringify(requestData),
     });
   }
 

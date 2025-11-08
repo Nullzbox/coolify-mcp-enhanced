@@ -1,0 +1,4 @@
+{
+  "githubAppUuid": "your-github-app-uuid-from-ui-url",
+  "comment": "Copy this file to coolify.config.local.json and fill in your actual UUID from the Coolify UI URL (http://your-coolify/source/github/YOUR-UUID-HERE)"
+}
