@@ -139,6 +139,36 @@ export function registerDeploymentTools(server: McpServer, client: CoolifyClient
     }
   });
 
+  // Get deployment logs
+  server.tool('get_deployment_logs', 'Get logs for a specific deployment', {
+    deployment_uuid: z.string().describe('UUID of the deployment to get logs for'),
+  }, async (args) => {
+    try {
+      const logs = await client.getDeploymentLogs(args.deployment_uuid);
+      return {
+        content: [{
+          type: 'text',
+          text: JSON.stringify({
+            success: true,
+            logs: logs,
+            message: logs ? `Successfully retrieved deployment logs (${logs.length} characters)` : 'No logs available for this deployment'
+          }, null, 2)
+        }]
+      };
+    } catch (error: any) {
+      return {
+        content: [{
+          type: 'text',
+          text: JSON.stringify({
+            success: false,
+            error: error.message,
+            message: 'Failed to get deployment logs'
+          }, null, 2)
+        }]
+      };
+    }
+  });
+
   // Deploy by tag or UUID
   server.tool('deploy_by_tag', 'Trigger deployment by tag or UUID', {
     tagOrUuid: z.string().describe('Tag or UUID to deploy'),
@@ -312,9 +342,8 @@ export function registerDeploymentTools(server: McpServer, client: CoolifyClient
           type: 'text',
           text: JSON.stringify({
             success: true,
-            data: logs,
-            count: logs.length,
-            message: `Successfully retrieved ${logs.length} log entries`
+            logs: logs.logs,
+            message: logs.logs ? `Successfully retrieved application logs (${logs.logs.length} characters)` : 'No logs available for this application'
           }, null, 2)
         }]
       };

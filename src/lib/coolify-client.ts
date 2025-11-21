@@ -591,6 +591,8 @@ export class CoolifyClient {
           if (variable.is_preview !== undefined) patchPayload.is_preview = variable.is_preview;
           if (variable.is_build_time !== undefined) patchPayload.is_build_time = variable.is_build_time;
           if (variable.is_literal !== undefined) patchPayload.is_literal = variable.is_literal;
+          if (variable.is_multiline !== undefined) patchPayload.is_multiline = variable.is_multiline;
+          if (variable.is_shown_once !== undefined) patchPayload.is_shown_once = variable.is_shown_once;
 
           try {
             // Essayer de mettre à jour
@@ -609,6 +611,8 @@ export class CoolifyClient {
               if (variable.is_preview !== undefined) postPayload.is_preview = variable.is_preview;
               if (variable.is_build_time !== undefined) postPayload.is_build_time = variable.is_build_time;
               if (variable.is_literal !== undefined) postPayload.is_literal = variable.is_literal;
+              if (variable.is_multiline !== undefined) postPayload.is_multiline = variable.is_multiline;
+              if (variable.is_shown_once !== undefined) postPayload.is_shown_once = variable.is_shown_once;
 
               const result = await this.request(`/applications/${uuid}/envs`, {
                 method: 'POST',
@@ -633,6 +637,8 @@ export class CoolifyClient {
       if (variables.is_preview !== undefined) payload.is_preview = variables.is_preview;
       if (variables.is_build_time !== undefined) payload.is_build_time = variables.is_build_time;
       if (variables.is_literal !== undefined) payload.is_literal = variables.is_literal;
+      if (variables.is_multiline !== undefined) payload.is_multiline = variables.is_multiline;
+      if (variables.is_shown_once !== undefined) payload.is_shown_once = variables.is_shown_once;
 
       try {
         // Essayer PATCH d'abord
@@ -695,6 +701,12 @@ export class CoolifyClient {
     return this.request<Deployment>(`/deployments/${uuid}`);
   }
 
+  async getDeploymentLogs(deploymentUuid: string): Promise<string> {
+    log('Getting deployment logs for:', deploymentUuid);
+    const deployment = await this.getDeployment(deploymentUuid);
+    return deployment.logs || '';
+  }
+
   async deployByTagOrUuid(tagOrUuid: string): Promise<{ message: string; deployment_uuid?: string }> {
     return this.request<{ message: string; deployment_uuid?: string }>(`/deploy/${tagOrUuid}`, {
       method: 'GET',
@@ -712,16 +724,16 @@ export class CoolifyClient {
     return this.request<ApplicationResources>(`/applications/${uuid}/resources`);
   }
 
-  async getApplicationLogs(uuid: string, options?: LogOptions): Promise<LogEntry[]> {
+  async getApplicationLogs(uuid: string, options?: LogOptions): Promise<{ logs: string }> {
     const queryParams = new URLSearchParams();
     if (options?.since) queryParams.set('since', options.since);
     if (options?.until) queryParams.set('until', options.until);
     if (options?.lines) queryParams.set('lines', options.lines.toString());
-    
+
     const queryString = queryParams.toString();
     const url = queryString ? `/applications/${uuid}/logs?${queryString}` : `/applications/${uuid}/logs`;
-    
-    return this.request<LogEntry[]>(url);
+
+    return this.request<{ logs: string }>(url);
   }
 
   // Full-Stack Project Methods

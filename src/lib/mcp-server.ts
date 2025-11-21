@@ -772,7 +772,9 @@ export class CoolifyMcpServer extends McpServer {
         value: z.string(),
         is_preview: z.boolean().optional(),
         is_build_time: z.boolean().optional(),
-        is_literal: z.boolean().optional()
+        is_literal: z.boolean().optional(),
+        is_multiline: z.boolean().optional(),
+        is_shown_once: z.boolean().optional()
       }))
     }, async (args, _extra) => {
       try {
