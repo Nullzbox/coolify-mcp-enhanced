@@ -255,7 +255,7 @@ export class CoolifyMcpServer extends McpServer {
 
     this.tool('update_project', 'Update an existing Coolify project', {
       uuid: z.string(),
-      name: z.string(),
+      name: z.string().optional(),
       description: z.string().optional()
     }, async (args, _extra) => {
       try {
@@ -730,6 +730,37 @@ export class CoolifyMcpServer extends McpServer {
       }
     });
 
+    this.tool('update_application', 'Update an existing Coolify application configuration', {
+      uuid: z.string(),
+      name: z.string().optional(),
+      description: z.string().optional(),
+      fqdn: z.string().optional(),
+      git_repository: z.string().optional(),
+      git_branch: z.string().optional(),
+      build_pack: z.enum(['nixpacks', 'dockerfile', 'docker-compose', 'static']).optional(),
+      dockerfile_location: z.string().optional(),
+      docker_compose_location: z.string().optional(),
+      base_directory: z.string().optional(),
+      publish_directory: z.string().optional(),
+      install_command: z.string().optional(),
+      build_command: z.string().optional(),
+      start_command: z.string().optional(),
+      ports: z.string().optional(),
+      is_static: z.boolean().optional()
+    }, async (args, _extra) => {
+      try {
+        const { uuid, ...updateData } = args;
+        const result = await this.client.updateApplication(uuid, updateData);
+        return {
+          content: [{ type: 'text', text: JSON.stringify(formatToolSuccess(result, `Application '${result.name}' updated successfully`), null, 2) }]
+        };
+      } catch (error: any) {
+        return {
+          content: [{ type: 'text', text: JSON.stringify(formatToolError(error, 'update_application', { uuid: args.uuid }), null, 2) }]
+        };
+      }
+    });
+
     // Environment Variable Management
     this.tool('get_application_environment_variables', 'Get environment variables for an application', {
       uuid: z.string()
@@ -808,6 +839,28 @@ export class CoolifyMcpServer extends McpServer {
       } catch (error: any) {
         return {
           content: [{ type: 'text', text: JSON.stringify(formatToolError(error, 'create_docker_compose_service', { name: args.name, project_uuid: args.project_uuid }), null, 2) }]
+        };
+      }
+    });
+
+    this.tool('update_docker_compose_service', 'Update an existing Docker Compose service', {
+      uuid: z.string(),
+      name: z.string().optional(),
+      description: z.string().optional(),
+      docker_compose_raw: z.string().optional(),
+      docker_compose_location: z.string().optional(),
+      git_repository: z.string().optional(),
+      git_branch: z.string().optional()
+    }, async (args, _extra) => {
+      try {
+        const { uuid, ...updateData } = args;
+        const result = await this.client.updateDockerComposeService(uuid, updateData);
+        return {
+          content: [{ type: 'text', text: JSON.stringify(formatToolSuccess(result, `Docker Compose service '${result.name}' updated successfully`), null, 2) }]
+        };
+      } catch (error: any) {
+        return {
+          content: [{ type: 'text', text: JSON.stringify(formatToolError(error, 'update_docker_compose_service', { uuid: args.uuid }), null, 2) }]
         };
       }
     });
